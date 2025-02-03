@@ -12,23 +12,26 @@ import (
 )
 
 func TestHandleHello(t *testing.T) {
-	r := goexpress.New()
-	r.Get("/api/hello", handler.HandleHello)
-	req := httptest.NewRequest("GET", "/api/hello", nil)
-	rr := httptest.NewRecorder()
-
-	r.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+	const url = "/api/hello"
+	const msg = "Hello world!"
 	const ct = "application/json"
-	assert.Equal(t, ct, rr.Header().Get("content-type"))
-	apiRes := struct {
-		Message string
-	}{
-		Message: "Hello world!",
+
+	r := goexpress.New()
+	r.Get(url, handler.HandleHello)
+
+	req := httptest.NewRequest("GET", url, nil)
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+	assert.Equal(t, ct, rr.Header().Get("Content-Type"))
+
+	apiRes := handler.APIResponse{
+		Message: msg,
 	}
 	if err := json.Unmarshal(rr.Body.Bytes(), &apiRes); err != nil {
 		t.Fatal("failed to decode json", err)
 	}
 
-	assert.Equal(t, "Hello world!", apiRes.Message)
+	assert.Equal(t, msg, apiRes.Message)
 }
