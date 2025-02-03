@@ -1,16 +1,6 @@
 run:
-  concurrency: 4 # Adjust based on your machine's cores
-  deadline: 5m # Set a reasonable timeout for linting
-  tests: false # Disable running tests during linting (usually done separately)
-  skip-dirs: # Exclude directories you don't want to lint
-    - vendor
-    - node_modules
-    - .git
-    - testdata # Example: directory for test data
-    - build
-  skip-files: # Exclude specific files
-    - *_generated.go
-    - *_mock.go
+  concurrency: 2
+  tests: false
 
 linters:
   enable:
@@ -29,43 +19,35 @@ linters:
     - goconst
     - nakedret
     - prealloc
-    - exportlooprefs
     - gosec
     - nolintlint # Checks for correct nolint usage
     - makezero # Checks for zero value initializations that can be simplified
     - wastedassign # Checks for assignments where the assigned value is not used
     - contextcheck # Checks for proper use of context values
     - durationcheck # Checks for time.Duration comparisons
-    - errwrap # Checks for proper error wrapping
-    - execa # Checks for potential security issues with os/exec
     - forbidigo # Forbids specific function/method calls
     - funlen # Checks for excessive function length
     - gochecknoglobals # Checks for global variables
     - gocognit # Checks for excessive cognitive complexity
     - gocyclo # Checks for excessive cyclomatic complexity
-    - goerr113 # Checks for wrapping errors consistently
-    - gomnd # Finds magic numbers
+    - err113 # Checks for wrapping errors consistently
+    - mnd # Finds magic numbers
     - importas # Enforces consistent import aliases
     - lll # Checks for long lines
-    - maligned # Finds struct fields that could be aligned for better performance
     - noctx # Checks for unwanted context usage
     - nolintlint # Checks for correct nolint usage
     - paralleltest # Checks for correct usage of t.Parallel() in tests
     - revive # Configurable, extensible linter for Go
-    - scopelint # Checks for potential issues with variable shadowing
+    - copyloopvar # Checks for potential issues with variable shadowing
     - sqlclosecheck # Checks for missing sql.Close() calls
-    - structcheck # Finds unused struct fields
+    - unused # Finds unused struct fields
     - thelper # Checks for test helpers that don't follow conventions
     - tparallel # Checks for parallel testing issues
     - unparam # Finds unused function parameters
-    - varcheck # Finds unused global variables and constants
 
   disable-all: true # Start with all linters disabled and selectively enable
 
 linters-settings:
-  govet:
-    check-shadowing: true # Enable shadowing checks in govet
-
   gocyclo:
     min-complexity: 20 # Set a threshold for cyclomatic complexity
 
@@ -79,23 +61,6 @@ linters-settings:
   lll:
     line-length: 120 # Set a threshold for line length
 
-  nolintlint:
-    allow-leading-space: true # Allow leading spaces before nolint directives
-
-  revive:
-    rules: # Example revive rules (customize as needed)
-      - name: "unexported-type-in-api"
-        severity: "warning"
-        disabled: false
-      - name: "add-constant-directive"
-        severity: "warning"
-        disabled: false
-
-  gosec:
-    severity: "warning" # Default severity for gosec issues
-    exclude: # Exclude specific gosec rules (use with caution)
-      - G404 # Insecure file permissions
-
   dupl:
     threshold: 150 # Adjust threshold for code duplication detection
 
@@ -105,18 +70,9 @@ linters-settings:
 issues:
   max-issues-per-linter: 0 # Report all issues per linter
   max-same-issues: 0 # Report all instances of the same issue
-  exclude-rules: # Exclude specific issues based on their message or path
-    - path: _test\.go # Exclude issues in test files
-      text: "G304:.*" # Example: Exclude gosec G304 issues in test files
-    - text: "weak cryptographic primitive" # Exclude issues related to weak crypto
-
-# Run specific linters in parallel
-concurrency: 4
 
 # Set the output format
 output:
-  format: colored-line-number # Use colored output with line numbers
+  formats:
+    - format: colored-line-number # Use colored output with line numbers
 
-# Enable caching to speed up subsequent runs
-build:
-  cache: true
