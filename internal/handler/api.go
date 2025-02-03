@@ -2,11 +2,14 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+
+	"github.com/ferdiebergado/gopherkit/http/response"
 )
 
 type APIResponse struct {
-	Message string `json:"message,omitempty"`
+	Message string `json:"message"`
 }
 
 func HandleHello(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +21,6 @@ func HandleHello(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
-		http.Error(w, "an error occured.", http.StatusInternalServerError)
+		response.ServerError(w, r, fmt.Errorf("encode json: %w", err))
 	}
 }
