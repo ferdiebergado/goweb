@@ -23,8 +23,11 @@ func TestHandleHello(t *testing.T) {
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
-	assert.Equal(t, ct, rr.Header().Get("Content-Type"))
+	res := rr.Result()
+	defer res.Body.Close()
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, ct, res.Header["Content-Type"][0])
 
 	apiRes := handler.APIResponse{
 		Message: msg,
