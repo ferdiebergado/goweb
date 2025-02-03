@@ -16,6 +16,9 @@ VERSION = v0.1.0
 # Go Flags (e.g., for race detector)
 GO_FLAGS = -race
 
+# Container name of the postgres database
+DB_CONTAINER = gowebdb
+
 .PHONY: $(wildcard *)
 
 %:
@@ -59,6 +62,13 @@ docker-run:
 	@echo "Running Docker container..."
 	@docker run -p 8080:8080 $(PROJECT_NAME):$(VERSION)  # Adjust port mapping
 
+db:
+	@if ! docker ps | grep -q $(DB_CONTAINER); then \
+		docker run --rm --env-file .env -p 5432:5432 --name $(DB_CONTAINER) -d postgres:17.0-alpine3.20; \
+	else \
+		echo "Database container 'gowebdb' is already running."; \
+	fi
+
 lint:
 	@echo "Running golangci-lint..."
 	@golangci-lint run -v $(GO_MODULE_PATH) # Make sure golangci-lint.yml is configured
@@ -84,10 +94,9 @@ gen:
 tidy:
 	go mod tidy
 
-dev:
-	@GO_FLAGS=
-	@ENV=development
-	@$(MAKE) run
+dev: db
+	@command -v air >/dev/null || go install github.com/air-verse/air@latest
+	@air
 
 prod:
 	@GO_FLAGS=-ldflags="-s -w" # Example production flags
