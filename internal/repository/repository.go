@@ -1,4 +1,4 @@
-//go:generate mockgen -destination=mock/dbrepo_mock.go -package=mock . DBRepo
+//go:generate mockgen -destination=mock/repository_mock.go -package=mock . Repository
 package repository
 
 import (
@@ -6,27 +6,20 @@ import (
 	"database/sql"
 )
 
-type DBRepo interface {
-	DBVersion(ctx context.Context) (string, error)
+type Repository interface {
+	PingContext(ctx context.Context) error
 }
 
-type dbRepo struct {
+type repo struct {
 	db *sql.DB
 }
 
-func NewDBRepo(db *sql.DB) DBRepo {
-	return &dbRepo{
+func NewRepository(db *sql.DB) Repository {
+	return &repo{
 		db: db,
 	}
 }
 
-const VersionQuery = "SELECT version()"
-
-func (r *dbRepo) DBVersion(ctx context.Context) (string, error) {
-	var v string
-	if err := r.db.QueryRowContext(ctx, VersionQuery).Scan(&v); err != nil {
-		return "", err
-	}
-
-	return v, nil
+func (r *repo) PingContext(ctx context.Context) error {
+	return r.db.PingContext(ctx)
 }

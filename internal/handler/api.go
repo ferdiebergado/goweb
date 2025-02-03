@@ -1,26 +1,34 @@
 package handler
 
 import (
-	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/ferdiebergado/gopherkit/http/response"
+	"github.com/ferdiebergado/goweb/internal/service"
 )
+
+type BaseHandler struct {
+	service service.Service
+}
+
+func NewBaseHandler(service service.Service) *BaseHandler {
+	return &BaseHandler{service: service}
+}
 
 type APIResponse struct {
 	Message string `json:"message"`
 }
 
-func HandleHello(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+func (h *BaseHandler) HandleHealth(w http.ResponseWriter, r *http.Request) {
+	status := http.StatusOK
+	msg := "healthy"
 
-	res := APIResponse{
-		Message: "Hello world!",
+	if err := h.service.PingDB(r.Context()); err != nil {
+		status = http.StatusServiceUnavailable
+		msg = "unhealthy"
+		slog.Error("failed to connect to the database", "reason", err)
 	}
 
-	if err := json.NewEncoder(w).Encode(&res); err != nil {
-		response.ServerError(w, r, fmt.Errorf("encode json: %w", err))
-	}
+	response.JSON(w, r, status, APIResponse{Message: msg})
 }

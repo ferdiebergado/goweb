@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -8,16 +9,24 @@ import (
 
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/goweb/internal/handler"
+	"github.com/ferdiebergado/goweb/internal/service/mock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
-func TestHandleHello(t *testing.T) {
-	const url = "/api/hello"
-	const msg = "Hello world!"
-	const ct = "application/json"
+func TestHandler_HandleHealth(t *testing.T) {
+	const (
+		url = "/api/health"
+		msg = "healthy"
+		ct  = "application/json"
+	)
 
+	ctrl := gomock.NewController(t)
+	mockService := mock.NewMockService(ctrl)
+	mockService.EXPECT().PingDB(context.Background()).Return(nil)
+	baseHandler := handler.NewBaseHandler(mockService)
 	r := goexpress.New()
-	r.Get(url, handler.HandleHello)
+	r.Get(url, baseHandler.HandleHealth)
 
 	req := httptest.NewRequest("GET", url, nil)
 	rr := httptest.NewRecorder()

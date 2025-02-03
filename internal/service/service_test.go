@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/ferdiebergado/goweb/internal/repository/mock"
 	"github.com/ferdiebergado/goweb/internal/service"
@@ -10,15 +11,21 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestDBVersion(t *testing.T) {
+func TestService_PingDB(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := mock.NewMockDBRepo(ctrl)
+	mockRepo := mock.NewMockRepository(ctrl)
 	ctx := context.Background()
-	mockRepo.EXPECT().DBVersion(ctx).Return("1", nil)
-	mockService := service.NewDBService(mockRepo)
 
-	v, err := mockService.DBVersion(ctx)
+	mockRepo.EXPECT().PingContext(gomock.Any()).Do(func(ctx context.Context) {
+		deadline, ok := ctx.Deadline()
+		assert.True(t, ok, "Expected context to have a deadline")
+		timeRemaining := time.Until(deadline)
+		assert.LessOrEqual(t, timeRemaining, 5*time.Second, "Deadline should be within 5 seconds")
+		assert.Greater(t, timeRemaining, 0*time.Second, "Deadline should be greater than zero") // Check it is not zero
+	}).Return(nil)
 
+	mockService := service.NewService(mockRepo)
+
+	err := mockService.PingDB(ctx)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, v)
 }
