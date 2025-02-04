@@ -29,3 +29,6 @@ coverage.out
 
 # build binaries
 build/
+
+# air build dir
+tmp/
