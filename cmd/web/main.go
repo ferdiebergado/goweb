@@ -33,8 +33,12 @@ func run(ctx context.Context) error {
 	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()
 
-	appEnv := loadEnv()
-	setLogger(appEnv, os.Stdout)
+	if err := loadEnv(); err != nil {
+		slog.Error("failed to load environment", "reason", err)
+		os.Exit(1)
+	}
+
+	setLogger(os.Stdout)
 
 	db := openDB()
 	defer db.Close()
@@ -63,7 +67,7 @@ func run(ctx context.Context) error {
 	}
 
 	go func() {
-		slog.Info("Server started", "address", server.Addr, "env", appEnv)
+		slog.Info("Server started", "address", server.Addr, "env", os.Getenv("ENV"))
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("Server error", "reason", err)
 		}
@@ -86,30 +90,30 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func loadEnv() {
+func loadEnv() error {
 	const dev = "development"
 	var envFile string
 	appEnv := env.Get("ENV", dev)
 
 	switch appEnv {
 	case "production":
-		return
+		return nil
 	case dev:
 		envFile = ".env"
 	case "testing":
 		envFile = ".env.testing"
 	default:
-		slog.Error("Unrecognized environment", "env", appEnv)
-		os.Exit(1)
+		return fmt.Errorf("unrecognized environment: %s", appEnv)
 	}
 
 	if err := env.Load(envFile); err != nil {
-		slog.Error("Failed to load environment", "reason", err)
-		os.Exit(1)
+		return fmt.Errorf("cannot load env file: %s", envFile)
 	}
+
+	return nil
 }
 
-func setLogger(appEnv string, out io.Writer) {
+func setLogger(out io.Writer) {
 	logLevel := new(slog.LevelVar)
 	opts := &slog.HandlerOptions{
 		Level: logLevel,
@@ -117,7 +121,7 @@ func setLogger(appEnv string, out io.Writer) {
 
 	var handler slog.Handler
 
-	if appEnv == "production" {
+	if os.Getenv("ENV") == "production" {
 		handler = slog.NewJSONHandler(out, opts)
 	} else {
 		if isDebug := env.GetBool("DEBUG", false); isDebug {
