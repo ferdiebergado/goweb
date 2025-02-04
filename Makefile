@@ -16,6 +16,9 @@ VERSION = v0.1.0
 # Go Flags (e.g., for race detector)
 GO_FLAGS = -race
 
+# Container runtime
+CONTAINER_RUNTIME = $(shell command -v podman || docker)
+
 # Container name of the postgres database
 DB_CONTAINER = gowebdb
 
@@ -41,6 +44,7 @@ run: build
 	@echo "Running $(BINARY_NAME) $(VERSION)..."
 	@$(BUILD_DIR)/$(BINARY_NAME)
 
+## test: Runs the unit tests
 test:
 	@echo "Running tests..."
 	@go test $(GO_FLAGS) $(GO_MODULE_PATH) -coverprofile=coverage.out
@@ -62,11 +66,25 @@ docker-run:
 	@echo "Running Docker container..."
 	@docker run -p 8080:8080 $(PROJECT_NAME):$(VERSION)  # Adjust port mapping
 
-db:
-	@if ! docker ps | grep -q $(DB_CONTAINER); then \
-		docker run --rm --env-file .env -p 5432:5432 --name $(DB_CONTAINER) -d postgres:17.0-alpine3.20; \
+## docker-check: If the container runtime is docker, checks if the daemon is running.
+docker-check:
+	@if [[ "$(CONTAINER_RUNTIME)" == "docker" ]]; then \
+                if $(CONTAINER_RUNTIME) info > /dev/null 2>&1; then \
+                        echo "Docker daemon is running."; \
+                else \
+                        echo "Docker daemon is NOT running.  Please start it."; \
+                        exit 1; \
+                fi; \
+        else \
+                echo "Container runtime is not Docker. Skipping Docker daemon check."; \
+        fi
+
+## db: Starts the database container
+db: docker-check
+	@if ! $(CONTAINER_RUNTIME) ps | grep -q $(DB_CONTAINER); then \
+		$(CONTAINER_RUNTIME) run --rm --env-file .env -p 5432:5432 --name $(DB_CONTAINER) -d postgres:17.0-alpine3.20; \
 	else \
-		echo "Database container 'gowebdb' is already running."; \
+		echo "Database container $(DB_CONTAINER) is already running."; \
 	fi
 
 lint:
@@ -94,11 +112,12 @@ gen:
 tidy:
 	go mod tidy
 
+## dev: Runs the app in development mode
 dev: db
 	@command -v air >/dev/null || go install github.com/air-verse/air@latest
 	@air
 
 prod:
-	@GO_FLAGS=-ldflags="-s -w" # Example production flags
+	@GO_FLAGS=-ldflags="-s -w"
 	@ENV=production
 	@$(MAKE) run
