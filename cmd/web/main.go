@@ -86,30 +86,27 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func loadEnv() string {
-	const (
-		dev  = "development"
-		prod = "production"
-	)
+func loadEnv() {
+	const dev = "development"
+	var envFile string
+	appEnv := env.Get("ENV", dev)
 
-	appEnv, ok := os.LookupEnv("ENV")
-	if !ok {
-		appEnv = dev
+	switch appEnv {
+	case "production":
+		return
+	case dev:
+		envFile = ".env"
+	case "testing":
+		envFile = ".env.testing"
+	default:
+		slog.Error("Unrecognized environment", "env", appEnv)
+		os.Exit(1)
 	}
 
-	if appEnv != "production" {
-		envFile := ".env"
-		if appEnv == "testing" {
-			envFile = ".env.testing"
-		}
-
-		if err := env.Load(envFile); err != nil {
-			slog.Error("Failed to load environment", "reason", err)
-			os.Exit(1)
-		}
+	if err := env.Load(envFile); err != nil {
+		slog.Error("Failed to load environment", "reason", err)
+		os.Exit(1)
 	}
-
-	return appEnv
 }
 
 func setLogger(appEnv string, out io.Writer) {
