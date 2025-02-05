@@ -25,5 +25,5 @@ func NewService(repo repository.Repository) Service {
 func (s *service) PingDB(ctx context.Context) error {
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	return s.repo.PingContext(pingCtx)
+	return s.repo.Ping(pingCtx)
 }

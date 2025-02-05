@@ -10,7 +10,7 @@ import (
 )
 
 func TestRepository_PingDB(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	db, mock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
@@ -19,7 +19,7 @@ func TestRepository_PingDB(t *testing.T) {
 	mock.ExpectPing()
 
 	repo := repository.NewRepository(db)
-	err = repo.PingContext(context.Background())
+	err = repo.Ping(context.Background())
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

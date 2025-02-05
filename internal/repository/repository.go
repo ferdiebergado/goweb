@@ -7,12 +7,14 @@ import (
 )
 
 type Repository interface {
-	PingContext(ctx context.Context) error
+	Ping(ctx context.Context) error
 }
 
 type repo struct {
 	db *sql.DB
 }
+
+var _ Repository = (*repo)(nil)
 
 func NewRepository(db *sql.DB) Repository {
 	return &repo{
@@ -20,6 +22,6 @@ func NewRepository(db *sql.DB) Repository {
 	}
 }
 
-func (r *repo) PingContext(ctx context.Context) error {
+func (r *repo) Ping(ctx context.Context) error {
 	return r.db.PingContext(ctx)
 }
