@@ -38,9 +38,7 @@ func TestHandler_HandleHealth(t *testing.T) {
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	assert.Equal(t, ct, res.Header["Content-Type"][0])
 
-	apiRes := handler.APIResponse{
-		Message: msg,
-	}
+	var apiRes handler.APIResponse
 	if err := json.Unmarshal(rr.Body.Bytes(), &apiRes); err != nil {
 		t.Fatal("failed to decode json", err)
 	}
