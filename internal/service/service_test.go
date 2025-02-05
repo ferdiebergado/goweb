@@ -16,7 +16,7 @@ func TestService_PingDB(t *testing.T) {
 	mockRepo := mock.NewMockRepository(ctrl)
 	ctx := context.Background()
 
-	mockRepo.EXPECT().PingContext(gomock.Any()).Do(func(ctx context.Context) {
+	mockRepo.EXPECT().Ping(gomock.Any()).Do(func(ctx context.Context) {
 		deadline, ok := ctx.Deadline()
 		assert.True(t, ok, "Expected context to have a deadline")
 		timeRemaining := time.Until(deadline)
