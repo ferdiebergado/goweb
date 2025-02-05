@@ -32,7 +32,8 @@ func run(ctx context.Context) error {
 	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()
 
-	if err := loadEnv(); err != nil {
+	appEnv, err := loadEnv()
+	if err != nil {
 		logFatal("failed to load environment", err)
 	}
 
@@ -50,13 +51,10 @@ func run(ctx context.Context) error {
 
 	db.SetMaxOpenConns(30)
 
-	slog.Info("Connected to the database")
+	slog.Info("Connected to the database", "db", os.Getenv("POSTGRES_DB"))
 
-	repo := repository.NewRepository(db)
-	service := service.NewService(repo)
-	baseHandler := handler.NewBaseHandler(service)
-	router := createRouter()
-	mountRoutes(router, baseHandler)
+	router := goexpress.New()
+	setupRoutes(router, db)
 
 	server := &http.Server{ // #nosec G112 -- timeouts will be handled by reverse proxy
 		Addr:    ":8080",
@@ -64,7 +62,7 @@ func run(ctx context.Context) error {
 	}
 
 	go func() {
-		slog.Info("Server started", "address", server.Addr, "env", os.Getenv("ENV"))
+		slog.Info("Server started", "address", server.Addr, "env", appEnv)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("Server error", "reason", err)
 		}
@@ -87,27 +85,27 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func loadEnv() error {
+func loadEnv() (string, error) {
 	const dev = "development"
 	var envFile string
 	appEnv := env.Get("ENV", dev)
 
 	switch appEnv {
 	case "production":
-		return nil
+		return appEnv, nil
 	case dev:
 		envFile = ".env"
 	case "testing":
 		envFile = ".env.testing"
 	default:
-		return fmt.Errorf("unrecognized environment: %s", appEnv)
+		return "", fmt.Errorf("unrecognized environment: %s", appEnv)
 	}
 
 	if err := env.Load(envFile); err != nil {
-		return fmt.Errorf("cannot load env file: %s", envFile)
+		return "", fmt.Errorf("cannot load env file: %s", envFile)
 	}
 
-	return nil
+	return appEnv, nil
 }
 
 func setLogger(out io.Writer) {
@@ -145,12 +143,14 @@ func openDB() *sql.DB {
 	return db
 }
 
-func createRouter() *goexpress.Router {
-	r := goexpress.New()
+func setupRoutes(r *goexpress.Router, db *sql.DB) {
 	r.Use(goexpress.RecoverFromPanic)
 	r.Use(goexpress.LogRequest)
 
-	return r
+	repo := repository.NewRepository(db)
+	service := service.NewService(repo)
+	baseHandler := handler.NewBaseHandler(service)
+	mountRoutes(r, baseHandler)
 }
 
 func logFatal(msg string, err error) {
