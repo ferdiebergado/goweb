@@ -24,8 +24,7 @@ func main() {
 	ctx := context.Background()
 
 	if err := run(ctx); err != nil {
-		slog.Error("Fatal error.", "reason", err)
-		os.Exit(1)
+		logFatal("Fatal error.", err)
 	}
 }
 
@@ -34,8 +33,7 @@ func run(ctx context.Context) error {
 	defer stop()
 
 	if err := loadEnv(); err != nil {
-		slog.Error("failed to load environment", "reason", err)
-		os.Exit(1)
+		logFatal("failed to load environment", err)
 	}
 
 	setLogger(os.Stdout)
@@ -47,13 +45,12 @@ func run(ctx context.Context) error {
 	defer cancel()
 
 	if err := db.PingContext(pingCtx); err != nil {
-		slog.Error("Cannot connect to the database", "reason", err)
-		os.Exit(1)
+		logFatal("Cannot connect to the database", err)
 	}
 
 	db.SetMaxOpenConns(30)
 
-	slog.Info("Connected")
+	slog.Info("Connected to the database")
 
 	repo := repository.NewRepository(db)
 	service := service.NewService(repo)
@@ -142,8 +139,7 @@ func openDB() *sql.DB {
 	dsn := fmt.Sprintf(dbStr, os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		slog.Error("Database initialization failed", "reason", err)
-		os.Exit(1)
+		logFatal("Database initialization failed", err)
 	}
 
 	return db
@@ -155,4 +151,9 @@ func createRouter() *goexpress.Router {
 	r.Use(goexpress.LogRequest)
 
 	return r
+}
+
+func logFatal(msg string, err error) {
+	slog.Error(msg, "reason", err)
+	os.Exit(1)
 }
