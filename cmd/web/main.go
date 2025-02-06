@@ -39,7 +39,11 @@ func run(ctx context.Context) error {
 
 	setLogger(os.Stdout)
 
-	db := openDB()
+	db, err := openDB()
+	if err != nil {
+		return err
+	}
+
 	defer db.Close()
 
 	pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -131,16 +135,16 @@ func setLogger(out io.Writer) {
 	slog.SetDefault(logger)
 }
 
-func openDB() *sql.DB {
+func openDB() (*sql.DB, error) {
 	slog.Info("Connecting to the database")
 	const dbStr = "postgres://%s:%s@localhost:5432/%s?sslmode=disable"
 	dsn := fmt.Sprintf(dbStr, os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		logFatal("Database initialization failed", err)
+		return nil, fmt.Errorf("database initialization: %w", err)
 	}
 
-	return db
+	return db, nil
 }
 
 func setupRoutes(r *goexpress.Router, db *sql.DB) {
