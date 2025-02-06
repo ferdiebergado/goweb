@@ -50,7 +50,7 @@ func run(ctx context.Context) error {
 	defer cancel()
 
 	if err := db.PingContext(pingCtx); err != nil {
-		logFatal("Cannot connect to the database", err)
+		return fmt.Errorf("connect database: %w", err)
 	}
 
 	db.SetMaxOpenConns(30)
