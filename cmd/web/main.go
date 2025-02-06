@@ -24,7 +24,8 @@ func main() {
 	ctx := context.WithoutCancel(context.Background())
 
 	if err := run(ctx); err != nil {
-		logFatal("Fatal error", err)
+		slog.Error("fatal error", "reason", err)
+		os.Exit(1)
 	}
 }
 
@@ -34,7 +35,7 @@ func run(ctx context.Context) error {
 
 	appEnv, err := loadEnv()
 	if err != nil {
-		logFatal("failed to load environment", err)
+		return fmt.Errorf("load environment: %w", err)
 	}
 
 	setLogger(os.Stdout, appEnv)
@@ -155,9 +156,4 @@ func setupRoutes(r *goexpress.Router, db *sql.DB) {
 	service := service.NewService(repo)
 	baseHandler := handler.NewBaseHandler(service)
 	mountRoutes(r, baseHandler)
-}
-
-func logFatal(msg string, err error) {
-	slog.Error(msg, "reason", err)
-	os.Exit(1)
 }
