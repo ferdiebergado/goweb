@@ -21,7 +21,7 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	ctx := context.WithoutCancel(context.Background())
 
 	if err := run(ctx); err != nil {
 		logFatal("Fatal error.", err)
