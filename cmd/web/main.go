@@ -21,7 +21,8 @@ import (
 )
 
 func main() {
-	ctx := context.WithoutCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	if err := run(ctx); err != nil {
 		slog.Error("fatal error", "reason", err)
