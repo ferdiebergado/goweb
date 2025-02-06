@@ -31,7 +31,10 @@ func main() {
 
 func run(ctx context.Context) error {
 	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt)
-	defer stop()
+	defer func() {
+		stop()
+		slog.Info("Signal context cleanup complete.")
+	}()
 
 	appEnv, err := loadEnv()
 	if err != nil {
@@ -66,24 +69,31 @@ func run(ctx context.Context) error {
 		Handler: router,
 	}
 
+	// Run server in a separate goroutine
+	serverErr := make(chan error, 1)
 	go func() {
 		slog.Info("Server started", "address", server.Addr, "env", appEnv)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("Server error", "reason", err)
+			serverErr <- err
 		}
+		close(serverErr)
 	}()
 
-	// Wait for shutdown signal
-	<-signalCtx.Done()
+	// Wait for a shutdown signal or server error
+	select {
+	case <-signalCtx.Done(): // Received termination signal (CTRL+C)
+		slog.Info("Shutdown signal received.")
+	case err := <-serverErr: // Server crashed
+		return fmt.Errorf("server error: %w", err)
+	}
 
+	// Graceful shutdown with timeout
 	slog.Info("Shutting down server...")
-
-	// Graceful shutdown
-	shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		return fmt.Errorf("server shutdown: %w", err)
+		return fmt.Errorf("server forced to shutdown: %w", err)
 	}
 
 	slog.Info("Server gracefully shut down.")
