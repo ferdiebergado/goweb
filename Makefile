@@ -83,6 +83,7 @@ docker-check:
 db: docker-check
 	@if ! $(CONTAINER_RUNTIME) ps | grep -q $(DB_CONTAINER); then \
 		$(CONTAINER_RUNTIME) run --rm --env-file .env -p 5432:5432 --name $(DB_CONTAINER) -d postgres:17.0-alpine3.20; \
+		sleep 5s; \
 	else \
 		echo "Database container $(DB_CONTAINER) is already running."; \
 	fi
