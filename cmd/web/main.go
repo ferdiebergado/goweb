@@ -24,7 +24,7 @@ func main() {
 	ctx := context.WithoutCancel(context.Background())
 
 	if err := run(ctx); err != nil {
-		logFatal("Fatal error.", err)
+		logFatal("Fatal error", err)
 	}
 }
 
@@ -37,7 +37,7 @@ func run(ctx context.Context) error {
 		logFatal("failed to load environment", err)
 	}
 
-	setLogger(os.Stdout)
+	setLogger(os.Stdout, appEnv)
 
 	db, err := openDB()
 	if err != nil {
@@ -112,7 +112,7 @@ func loadEnv() (string, error) {
 	return appEnv, nil
 }
 
-func setLogger(out io.Writer) {
+func setLogger(out io.Writer, appEnv string) {
 	logLevel := new(slog.LevelVar)
 	opts := &slog.HandlerOptions{
 		Level: logLevel,
@@ -120,7 +120,7 @@ func setLogger(out io.Writer) {
 
 	var handler slog.Handler
 
-	if os.Getenv("ENV") == "production" {
+	if appEnv == "production" {
 		handler = slog.NewJSONHandler(out, opts)
 	} else {
 		if isDebug := env.GetBool("DEBUG", false); isDebug {
