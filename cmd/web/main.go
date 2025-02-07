@@ -15,7 +15,6 @@ import (
 
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/env"
-	"github.com/ferdiebergado/goweb/internal/config"
 	"github.com/ferdiebergado/goweb/internal/handler"
 	"github.com/ferdiebergado/goweb/internal/repository"
 	"github.com/ferdiebergado/goweb/internal/service"
@@ -23,7 +22,7 @@ import (
 )
 
 func main() {
-	cfgFile := flag.String("config", "config.json", "Config file")
+	cfgFile := flag.String("cfg", "config.json", "Config file")
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -42,43 +41,35 @@ func run(ctx context.Context, cfgFile string) error {
 		slog.Info("Signal context cleanup complete.")
 	}()
 
-	config, err := config.LoadConfig(cfgFile)
-	if err != nil {
-		return fmt.Errorf("load environment: %w", err)
+	if err := loadEnv(); err != nil {
+		return fmt.Errorf("load env: %w", err)
 	}
 
-	setLogger(os.Stdout, &config.App)
+	cfg, err := loadConfig(cfgFile)
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
 
-	db, err := openDB(&config.Db)
+	setLogger(os.Stdout, &cfg.App)
+
+	db, err := openDB(ctx, &cfg.Db)
 	if err != nil {
 		return err
 	}
-
 	defer db.Close()
-
-	pingCtx, cancel := context.WithTimeout(ctx, time.Duration(config.Db.PingTimeout)*time.Second)
-	defer cancel()
-
-	if err := db.PingContext(pingCtx); err != nil {
-		return fmt.Errorf("connect database: %w", err)
-	}
-
-	db.SetMaxOpenConns(30)
-
-	slog.Info("Connected to the database", "db", config.Db.DB)
 
 	router := goexpress.New()
 	setupRoutes(router, db)
 
 	server := &http.Server{ // #nosec G112 -- timeouts will be handled by reverse proxy
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler: router,
 	}
 
 	// Run server in a separate goroutine
 	serverErr := make(chan error, 1)
 	go func() {
-		slog.Info("Server started", "address", server.Addr, "env", config.App.Env)
+		slog.Info("Server started", "address", server.Addr, "env", cfg.App.Env)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
@@ -95,7 +86,7 @@ func run(ctx context.Context, cfgFile string) error {
 
 	// Graceful shutdown with timeout
 	slog.Info("Shutting down server...")
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Server.ShutdownTimeout)*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
@@ -106,30 +97,34 @@ func run(ctx context.Context, cfgFile string) error {
 	return nil
 }
 
-func loadEnv() (string, error) {
-	const dev = "development"
+func loadEnv() error {
+	const (
+		dev     = "development"
+		envDev  = ".env"
+		envTest = ".env.testing"
+	)
 	var envFile string
 	appEnv := env.Get("ENV", dev)
 
 	switch appEnv {
 	case "production":
-		return appEnv, nil
+		return nil
 	case dev:
-		envFile = ".env"
+		envFile = envDev
 	case "testing":
-		envFile = ".env.testing"
+		envFile = envTest
 	default:
-		return "", fmt.Errorf("unrecognized environment: %s", appEnv)
+		return fmt.Errorf("unrecognized environment: %s", appEnv)
 	}
 
 	if err := env.Load(envFile); err != nil {
-		return "", fmt.Errorf("cannot load env file: %s", envFile)
+		return fmt.Errorf("cannot load env file: %s", envFile)
 	}
 
-	return appEnv, nil
+	return nil
 }
 
-func setLogger(out io.Writer, cfg *config.AppConfig) {
+func setLogger(out io.Writer, cfg *AppConfig) {
 	logLevel := new(slog.LevelVar)
 	opts := &slog.HandlerOptions{
 		Level: logLevel,
@@ -152,15 +147,28 @@ func setLogger(out io.Writer, cfg *config.AppConfig) {
 	slog.SetDefault(logger)
 }
 
-func openDB(cfg *config.DBConfig) (*sql.DB, error) {
-	slog.Info("Connecting to the database")
+func openDB(ctx context.Context, cfg *DBConfig) (*sql.DB, error) {
 	const dbStr = "postgres://%s:%s@localhost:5432/%s?sslmode=disable"
+	slog.Info("Connecting to the database")
 	dsn := fmt.Sprintf(dbStr, cfg.User, cfg.Pass, cfg.DB)
-	db, err := sql.Open("pgx", dsn)
+	db, err := sql.Open(cfg.Driver, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("database initialization: %w", err)
 	}
 
+	pingCtx, cancel := context.WithTimeout(ctx, time.Duration(cfg.PingTimeout)*time.Second)
+	defer cancel()
+
+	if err := db.PingContext(pingCtx); err != nil {
+		return nil, fmt.Errorf("connect database: %w", err)
+	}
+
+	db.SetMaxOpenConns(cfg.MaxOpenConns)
+	db.SetMaxIdleConns(cfg.MaxIdleConns)
+	db.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)
+	db.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdle) * time.Second)
+
+	slog.Info("Connected to the database", "db", cfg.DB)
 	return db, nil
 }
 

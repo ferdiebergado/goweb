@@ -4,9 +4,14 @@
     "is_debug": false
   },
   "db": {
+    "driver": "pgx",
     "host": "localhost",
     "port": 5432,
-    "ping_timeout": 10
+    "ping_timeout": 10,
+    "max_open_conns": 20,
+    "max_idle_conns": 10,
+    "conn_max_lifetime": 300,
+    "conn_max_idle_time": 60
   },
   "server": {
     "port": 8080,

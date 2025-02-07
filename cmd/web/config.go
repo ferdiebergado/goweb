@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"encoding/json"
@@ -13,12 +13,17 @@ type AppConfig struct {
 }
 
 type DBConfig struct {
-	User        string `json:"user,omitempty"`
-	Pass        string `json:"pass,omitempty"`
-	Host        string `json:"host,omitempty"`
-	Port        int    `json:"port,omitempty"`
-	PingTimeout int    `json:"ping_timeout,omitempty"`
-	DB          string `json:"db,omitempty"`
+	Driver          string `json:"driver,omitempty"`
+	User            string `json:"user,omitempty"`
+	Pass            string `json:"pass,omitempty"`
+	Host            string `json:"host,omitempty"`
+	Port            int    `json:"port,omitempty"`
+	PingTimeout     int    `json:"ping_timeout,omitempty"`
+	DB              string `json:"db,omitempty"`
+	MaxOpenConns    int    `json:"max_open_conns,omitempty"`
+	MaxIdleConns    int    `json:"max_idle_conns,omitempty"`
+	ConnMaxIdle     int    `json:"conn_max_idle,omitempty"`
+	ConnMaxLifetime int    `json:"conn_max_lifetime,omitempty"`
 }
 
 type ServerConfig struct {
@@ -32,7 +37,7 @@ type Config struct {
 	Server ServerConfig `json:"server,omitempty"`
 }
 
-func LoadConfig(path string) (*Config, error) {
+func loadConfig(path string) (*Config, error) {
 	configFile, err := os.Open(path)
 	if err != nil {
 		return nil, err
