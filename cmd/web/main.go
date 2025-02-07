@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log/slog"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/env"
+	"github.com/ferdiebergado/goweb/internal/config"
 	"github.com/ferdiebergado/goweb/internal/handler"
 	"github.com/ferdiebergado/goweb/internal/repository"
 	"github.com/ferdiebergado/goweb/internal/service"
@@ -21,37 +23,40 @@ import (
 )
 
 func main() {
+	cfgFile := flag.String("config", "config.json", "Config file")
+	flag.Parse()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := run(ctx); err != nil {
+	if err := run(ctx, *cfgFile); err != nil {
 		slog.Error("fatal error", "reason", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context) error {
+func run(ctx context.Context, cfgFile string) error {
 	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer func() {
 		stop()
 		slog.Info("Signal context cleanup complete.")
 	}()
 
-	appEnv, err := loadEnv()
+	config, err := config.LoadConfig(cfgFile)
 	if err != nil {
 		return fmt.Errorf("load environment: %w", err)
 	}
 
-	setLogger(os.Stdout, appEnv)
+	setLogger(os.Stdout, &config.App)
 
-	db, err := openDB()
+	db, err := openDB(&config.Db)
 	if err != nil {
 		return err
 	}
 
 	defer db.Close()
 
-	pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	pingCtx, cancel := context.WithTimeout(ctx, time.Duration(config.Db.PingTimeout)*time.Second)
 	defer cancel()
 
 	if err := db.PingContext(pingCtx); err != nil {
@@ -60,7 +65,7 @@ func run(ctx context.Context) error {
 
 	db.SetMaxOpenConns(30)
 
-	slog.Info("Connected to the database", "db", os.Getenv("POSTGRES_DB"))
+	slog.Info("Connected to the database", "db", config.Db.DB)
 
 	router := goexpress.New()
 	setupRoutes(router, db)
@@ -73,7 +78,7 @@ func run(ctx context.Context) error {
 	// Run server in a separate goroutine
 	serverErr := make(chan error, 1)
 	go func() {
-		slog.Info("Server started", "address", server.Addr, "env", appEnv)
+		slog.Info("Server started", "address", server.Addr, "env", config.App.Env)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
@@ -124,7 +129,7 @@ func loadEnv() (string, error) {
 	return appEnv, nil
 }
 
-func setLogger(out io.Writer, appEnv string) {
+func setLogger(out io.Writer, cfg *config.AppConfig) {
 	logLevel := new(slog.LevelVar)
 	opts := &slog.HandlerOptions{
 		Level: logLevel,
@@ -132,10 +137,10 @@ func setLogger(out io.Writer, appEnv string) {
 
 	var handler slog.Handler
 
-	if appEnv == "production" {
+	if cfg.Env == "production" {
 		handler = slog.NewJSONHandler(out, opts)
 	} else {
-		if isDebug := env.GetBool("DEBUG", false); isDebug {
+		if cfg.IsDebug {
 			logLevel.Set(slog.LevelDebug)
 		}
 
@@ -147,10 +152,10 @@ func setLogger(out io.Writer, appEnv string) {
 	slog.SetDefault(logger)
 }
 
-func openDB() (*sql.DB, error) {
+func openDB(cfg *config.DBConfig) (*sql.DB, error) {
 	slog.Info("Connecting to the database")
 	const dbStr = "postgres://%s:%s@localhost:5432/%s?sslmode=disable"
-	dsn := fmt.Sprintf(dbStr, os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
+	dsn := fmt.Sprintf(dbStr, cfg.User, cfg.Pass, cfg.DB)
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("database initialization: %w", err)

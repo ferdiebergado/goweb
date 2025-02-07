@@ -1,0 +1,15 @@
+{
+  "app": {
+    "env": "development",
+    "is_debug": false
+  },
+  "db": {
+    "host": "localhost",
+    "port": 5432,
+    "ping_timeout": 10
+  },
+  "server": {
+    "port": 8080,
+    "shutdown_timeout": 5
+  }
+}
