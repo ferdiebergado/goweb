@@ -17,7 +17,7 @@ VERSION = v0.1.0
 GO_FLAGS = -race
 
 # Container runtime
-CONTAINER_RUNTIME := $(shell if command -v docker >/dev/null 2>&1; then echo docker; elif command -v podman >/dev/null 2>&1; then echo podman; else echo ""; fi)
+CONTAINER_RUNTIME := $(shell if command -v podman >/dev/null 2>&1; then echo podman; elif command -v docker >/dev/null 2>&1; then echo docker; else echo ""; fi)
 
 # Container name of the postgres database
 DB_CONTAINER = gowebdb
