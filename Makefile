@@ -17,7 +17,7 @@ VERSION = v0.1.0
 GO_FLAGS = -race
 
 # Container runtime
-CONTAINER_RUNTIME = $(shell command -v podman>/dev/null && echo podman || echo docker)
+CONTAINER_RUNTIME := $(shell if command -v docker >/dev/null 2>&1; then echo docker; elif command -v podman >/dev/null 2>&1; then echo podman; else echo ""; fi)
 
 # Container name of the postgres database
 DB_CONTAINER = gowebdb
@@ -68,17 +68,19 @@ docker-run:
 
 ## docker-check: If the container runtime is docker, checks if the daemon is running.
 docker-check:
-	@echo Detected container runtime is $(CONTAINER_RUNTIME).
-	@if [ "$(CONTAINER_RUNTIME)" == "docker" ]; then \
-                if $(CONTAINER_RUNTIME) info > /dev/null 2>&1; then \
-                        echo "Docker daemon is running."; \
-                else \
-                        echo "Docker daemon is NOT running.  Please start it."; \
-                        exit 1; \
-                fi; \
-        else \
+	@if [ -z "$(CONTAINER_RUNTIME)" ]; then \
+		echo "No container runtime found (docker or podman)."; \
+		exit 1; \
+	fi
+	@if [ "$(CONTAINER_RUNTIME)" = "docker" ]; then \
+		if ! docker info >/dev/null 2>&1; then \
+			echo "Docker is NOT running.  Please start it."; \
+			exit 1; \
+		fi; \
+	else \
                 echo "Container runtime is not Docker. Skipping Docker daemon check."; \
-        fi
+	fi
+	@echo "Detected container runtime is $(CONTAINER_RUNTIME)."
 
 ## db: Starts the database container
 db: docker-check
