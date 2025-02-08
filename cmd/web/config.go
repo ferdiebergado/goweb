@@ -60,6 +60,10 @@ func loadConfig(path string) (*Config, error) {
 	config.Db.Port = env.GetInt("POSTGRES_PORT", config.Db.Port)
 	config.Db.DB = env.Get("POSTGRES_DB", config.Db.DB)
 	config.Db.PingTimeout = env.GetInt("DB_PING_TIMEOUT", config.Db.PingTimeout)
+	config.Db.MaxOpenConns = env.GetInt("DB_MAX_OPEN_CONNS", config.Db.MaxOpenConns)
+	config.Db.MaxIdleConns = env.GetInt("DB_MAX_IDLE_CONNS", config.Db.MaxIdleConns)
+	config.Db.ConnMaxLifetime = env.GetInt("DB_CONN_MAX_LIFETIME", config.Db.ConnMaxLifetime)
+	config.Db.ConnMaxIdle = env.GetInt("DB_CONN_MAX_IDLE", config.Db.ConnMaxIdle)
 
 	config.Server.Port = env.GetInt("PORT", config.Server.Port)
 
