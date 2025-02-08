@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/ferdiebergado/goexpress"
@@ -25,22 +26,19 @@ func main() {
 	cfgFile := flag.String("cfg", "config.json", "Config file")
 	flag.Parse()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer func() {
+		stop()
+		slog.Info("Signal context cleanup complete.")
+	}()
 
-	if err := run(ctx, *cfgFile); err != nil {
+	if err := run(signalCtx, *cfgFile); err != nil {
 		slog.Error("fatal error", "reason", err)
 		os.Exit(1)
 	}
 }
 
 func run(ctx context.Context, cfgFile string) error {
-	signalCtx, stop := signal.NotifyContext(ctx, os.Interrupt)
-	defer func() {
-		stop()
-		slog.Info("Signal context cleanup complete.")
-	}()
-
 	if err := loadEnv(); err != nil {
 		return fmt.Errorf("load env: %w", err)
 	}
@@ -78,7 +76,7 @@ func run(ctx context.Context, cfgFile string) error {
 
 	// Wait for a shutdown signal or server error
 	select {
-	case <-signalCtx.Done(): // Received termination signal (CTRL+C)
+	case <-ctx.Done(): // Received termination signal (CTRL+C)
 		slog.Info("Shutdown signal received.")
 	case err := <-serverErr: // Server crashed
 		return fmt.Errorf("server error: %w", err)
