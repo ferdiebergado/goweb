@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"os"
 
 	"github.com/ferdiebergado/gopherkit/env"
@@ -47,8 +50,8 @@ func loadConfig(path string) (*Config, error) {
 	var config Config
 	decoder := json.NewDecoder(configFile)
 	err = decoder.Decode(&config)
-	if err != nil {
-		return nil, err
+	if err != nil && !errors.Is(err, io.EOF) {
+		return nil, fmt.Errorf("decode config: %w", err)
 	}
 
 	config.App.Env = env.Get("ENV", config.App.Env)
