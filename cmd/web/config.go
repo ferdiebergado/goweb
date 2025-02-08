@@ -43,7 +43,7 @@ type Config struct {
 func loadConfig(path string) (*Config, error) {
 	configFile, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open config file %s: %w", path, err)
 	}
 	defer configFile.Close()
 
