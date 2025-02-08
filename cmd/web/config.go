@@ -54,8 +54,8 @@ func loadConfig(path string) (*Config, error) {
 	config.App.Env = env.Get("ENV", config.App.Env)
 	config.App.IsDebug = env.GetBool("DEBUG", config.App.IsDebug)
 
-	config.Db.User = os.Getenv("POSTGRES_USER")
-	config.Db.Pass = os.Getenv("POSTGRES_PASSWORD")
+	config.Db.User = env.MustGet("POSTGRES_USER")
+	config.Db.Pass = env.MustGet("POSTGRES_PASSWORD")
 	config.Db.Host = env.Get("POSTGRES_HOST", config.Db.Host)
 	config.Db.Port = env.GetInt("POSTGRES_PORT", config.Db.Port)
 	config.Db.DB = env.Get("POSTGRES_DB", config.Db.DB)
