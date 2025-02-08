@@ -4,10 +4,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>{{block "title" .}}{{end}}</title>
+    {{block "styles" .}}{{end}}
   </head>
   <body>
-    {{template "nav"}} {{block "content" .}}{{end}}
+    {{template "nav"}}
+    <main>{{block "content" .}}{{end}} {{block "scripts" .}}{{end}}</main>
   </body>
 </html>
 {{end}}
