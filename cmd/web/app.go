@@ -34,6 +34,10 @@ func (a *App) SetupRoutes() {
 	a.router.Use(goexpress.RecoverFromPanic)
 	a.router.Use(goexpress.LogRequest)
 
+	if a.cfg.App.Env == "development" {
+		a.router.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("web/assets/"))))
+	}
+
 	repo := repository.NewRepository(a.db)
 	service := service.NewService(repo)
 	baseHandler := handler.NewBaseHandler(service)
