@@ -16,9 +16,7 @@ import (
 
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/env"
-	"github.com/ferdiebergado/goweb/internal/handler"
-	"github.com/ferdiebergado/goweb/internal/repository"
-	"github.com/ferdiebergado/goweb/internal/service"
+	"github.com/ferdiebergado/goweb/internal/config"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -43,7 +41,7 @@ func run(ctx context.Context, cfgFile string) error {
 		return fmt.Errorf("load env: %w", err)
 	}
 
-	cfg, err := loadConfig(cfgFile)
+	cfg, err := config.LoadConfig(cfgFile)
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
@@ -57,11 +55,12 @@ func run(ctx context.Context, cfgFile string) error {
 	defer db.Close()
 
 	router := goexpress.New()
-	setupRoutes(router, db)
+	app := NewApp(cfg, db, router)
+	app.SetupRoutes()
 
 	server := &http.Server{ // #nosec G112 -- timeouts will be handled by reverse proxy
 		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler: router,
+		Handler: app.Router(),
 	}
 
 	// Run server in a separate goroutine
@@ -122,7 +121,7 @@ func loadEnv() error {
 	return nil
 }
 
-func setLogger(out io.Writer, cfg *AppConfig) {
+func setLogger(out io.Writer, cfg *config.EnvConfig) {
 	logLevel := new(slog.LevelVar)
 	opts := &slog.HandlerOptions{
 		Level: logLevel,
@@ -145,7 +144,7 @@ func setLogger(out io.Writer, cfg *AppConfig) {
 	slog.SetDefault(logger)
 }
 
-func openDB(ctx context.Context, cfg *DBConfig) (*sql.DB, error) {
+func openDB(ctx context.Context, cfg *config.DBConfig) (*sql.DB, error) {
 	const dbStr = "postgres://%s:%s@localhost:5432/%s?sslmode=disable"
 	slog.Info("Connecting to the database")
 	dsn := fmt.Sprintf(dbStr, cfg.User, cfg.Pass, cfg.DB)
@@ -168,14 +167,4 @@ func openDB(ctx context.Context, cfg *DBConfig) (*sql.DB, error) {
 
 	slog.Info("Connected to the database", "db", cfg.DB)
 	return db, nil
-}
-
-func setupRoutes(r *goexpress.Router, db *sql.DB) {
-	r.Use(goexpress.RecoverFromPanic)
-	r.Use(goexpress.LogRequest)
-
-	repo := repository.NewRepository(db)
-	service := service.NewService(repo)
-	baseHandler := handler.NewBaseHandler(service)
-	mountRoutes(r, baseHandler)
 }

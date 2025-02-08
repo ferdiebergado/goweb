@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"github.com/ferdiebergado/gopherkit/env"
 )
 
-type AppConfig struct {
+type EnvConfig struct {
 	Env     string `json:"env,omitempty"`
 	IsDebug bool   `json:"is_debug,omitempty"`
 }
@@ -34,13 +34,21 @@ type ServerConfig struct {
 	ShutdownTimeout int `json:"shutdown_timeout,omitempty"`
 }
 
-type Config struct {
-	App    AppConfig    `json:"app,omitempty"`
-	Db     DBConfig     `json:"db,omitempty"`
-	Server ServerConfig `json:"server,omitempty"`
+type TemplateConfig struct {
+	Path         string `json:"path,omitempty"`
+	LayoutFile   string `json:"layout_file,omitempty"`
+	PartialsPath string `json:"partials_path,omitempty"`
+	PagesPath    string `json:"pages_path,omitempty"`
 }
 
-func loadConfig(path string) (*Config, error) {
+type Config struct {
+	App      EnvConfig      `json:"app,omitempty"`
+	Db       DBConfig       `json:"db,omitempty"`
+	Server   ServerConfig   `json:"server,omitempty"`
+	Template TemplateConfig `json:"template,omitempty"`
+}
+
+func LoadConfig(path string) (*Config, error) {
 	configFile, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open config file %s: %w", path, err)

@@ -16,5 +16,11 @@
   "server": {
     "port": 8080,
     "shutdown_timeout": 5
+  },
+  "template": {
+    "path": "web/templates",
+    "layout_file": "layout.html",
+    "partials_path": "partials",
+    "pages_path": "pages"
   }
 }
