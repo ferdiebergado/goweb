@@ -22,6 +22,12 @@ CONTAINER_RUNTIME := $(shell if command -v podman >/dev/null 2>&1; then echo pod
 # Container name of the postgres database
 DB_CONTAINER = gowebdb
 
+# Path for db migrations
+MIGRATIONS_DIR = ./db/migrations
+
+# Env file
+ENV_FILE ?= ./.env
+
 .PHONY: $(wildcard *)
 
 %:
@@ -40,6 +46,7 @@ build:
 	@go build $(GO_FLAGS) -ldflags="-X main.version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/web/...
 	@echo "Build complete!"
 
+## run: Run the project
 run: build
 	@echo "Running $(BINARY_NAME) $(VERSION)..."
 	@$(BUILD_DIR)/$(BINARY_NAME)
@@ -66,7 +73,7 @@ docker-run:
 	@echo "Running Docker container..."
 	@docker run -p 8080:8080 $(PROJECT_NAME):$(VERSION)  # Adjust port mapping
 
-## docker-check: If the container runtime is docker, checks if the daemon is running.
+## docker-check: Checks if the docker daemon is running.
 docker-check:
 	@if [ -z "$(CONTAINER_RUNTIME)" ]; then \
 		echo "No container runtime found (docker or podman)."; \
@@ -91,6 +98,11 @@ db: docker-check
 		echo "Database container $(DB_CONTAINER) is already running."; \
 	fi
 
+## psql: Opens a session with the database instance
+psql: db
+	set -a; source $(ENV_FILE); set +a; \
+	$(CONTAINER_RUNTIME) exec -it $(DB_CONTAINER) psql -U $$POSTGRES_USER $$POSTGRES_DB
+
 lint:
 	@echo "Running golangci-lint..."
 	@golangci-lint run -v $(GO_MODULE_PATH) # Make sure golangci-lint.yml is configured
@@ -99,20 +111,44 @@ format:
 	@echo "Running go fmt..."
 	@go fmt $(GO_MODULE_PATH)
 
-migrate-up: # Example for database migrations (using migrate tool)
-	@echo "Running database migrations (up)..."
-	@migrate -path ./migrations -database "postgres://..." -steps 1 up # Replace with your DB connection string
+## migrate-check: Checks and installs golang-migrate
+migrate-check:
+	@command -v migrate>/dev/null || go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
-migrate-down:
+## migrate-new: Creates a new migration: make migrate-new create_users_table
+migrate-new: migrate-check
+	@migrate create -dir $(MIGRATIONS_DIR) -ext sql -seq $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
+
+## migrate-up: Runs the database migrations
+migrate-up: migrate-check
+	@echo "Running database migrations (up)..."
+	@set -a; source $(ENV_FILE); set +a; \
+	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" up
+
+## migrate-down: Rolls back the database migrations
+migrate-down: migrate-check
 	@echo "Running database migrations (down)..."
-	@migrate -path ./migrations -database "postgres://..." down # Replace with your DB connection string
+	@set -a; source $(ENV_FILE); set +a; \
+	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" down
+
+## migrate-force: Force a migration: make migrate-force 1
+migrate-force:
+	@echo "Forcing migration..."
+	@set -a; source $(ENV_FILE); set +a; \
+	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" force $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
+
+## migrate-drop: Drops all tables in the database
+migrate-drop: migrate-check
+	@echo "Dropping all database tables..."
+	@set -a; source $(ENV_FILE); set +a; \
+	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" drop
 
 ## gen: Generate source files
 gen:
 	@command -v mockgen >/dev/null || go install go.uber.org/mock/mockgen@latest
 	go generate -v ./...
 
-## tidy: Add missing or remove unused modules
+## tidy: Add missing/Remove unused modules
 tidy:
 	go mod tidy
 
