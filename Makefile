@@ -47,7 +47,7 @@ build:
 	@echo "Build complete!"
 
 ## run: Run the project
-run: build
+run: build db
 	@echo "Running $(BINARY_NAME) $(VERSION)..."
 	@$(BUILD_DIR)/$(BINARY_NAME)
 
