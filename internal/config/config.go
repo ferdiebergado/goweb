@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/ferdiebergado/gopherkit/env"
 )
@@ -50,6 +51,7 @@ type Config struct {
 }
 
 func LoadConfig(path string) (*Config, error) {
+	path = filepath.Clean(path)
 	configFile, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open config file %s: %w", path, err)
