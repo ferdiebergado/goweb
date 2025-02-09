@@ -16,6 +16,7 @@ exclude_dir = [
 	"web/app",
 	"web/assets",
 	"configs",
+	"tools",
 ]
 exclude_file = []
 exclude_regex = ["_test.go"]
