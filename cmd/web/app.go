@@ -7,6 +7,7 @@ import (
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/goweb/internal/config"
 	"github.com/ferdiebergado/goweb/internal/handler"
+	"github.com/ferdiebergado/goweb/internal/pkg/security"
 	"github.com/ferdiebergado/goweb/internal/repository"
 	"github.com/ferdiebergado/goweb/internal/service"
 )
@@ -47,7 +48,8 @@ func (a *App) SetupRoutes() {
 	mountBaseHTMLRoutes(a.router, baseHTMLHandler)
 
 	userRepo := repository.NewUserRepository(a.db)
-	userService := service.NewUserService(userRepo)
+	hasher := &security.Argon2Hasher{}
+	userService := service.NewUserService(userRepo, hasher)
 	userHandler := handler.NewUserHandler(userService)
 	mountUserRoutes(a.router, userHandler)
 }

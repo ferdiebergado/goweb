@@ -11,6 +11,8 @@ import (
 	"github.com/ferdiebergado/goweb/internal/service"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+
+	secMock "github.com/ferdiebergado/goweb/internal/pkg/security/mock"
 )
 
 func TestUserService_RegisterUser(t *testing.T) {
@@ -21,7 +23,7 @@ func TestUserService_RegisterUser(t *testing.T) {
 	)
 	ctrl := gomock.NewController(t)
 	mockRepo := mock.NewMockUserRepo(ctrl)
-	ctx := context.Background()
+	mockHasher := secMock.NewMockHasher(ctrl)
 
 	regParams := service.RegisterUserParams{
 		Email:           testEmail,
@@ -31,7 +33,7 @@ func TestUserService_RegisterUser(t *testing.T) {
 
 	params := repository.CreateUserParams{
 		Email:        regParams.Email,
-		PasswordHash: regParams.Password,
+		PasswordHash: testPassHashed,
 	}
 
 	user := &model.User{
@@ -39,9 +41,12 @@ func TestUserService_RegisterUser(t *testing.T) {
 		Email: testEmail,
 	}
 
+	mockHasher.EXPECT().Hash(regParams.Password).Return(testPassHashed, nil)
+
+	ctx := context.Background()
 	mockRepo.EXPECT().CreateUser(ctx, params).Return(user, nil)
 
-	userService := service.NewUserService(mockRepo)
+	userService := service.NewUserService(mockRepo, mockHasher)
 
 	newUser, err := userService.RegisterUser(ctx, regParams)
 	assert.NoError(t, err)

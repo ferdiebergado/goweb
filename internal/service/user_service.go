@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ferdiebergado/goweb/internal/model"
+	"github.com/ferdiebergado/goweb/internal/pkg/security"
 	"github.com/ferdiebergado/goweb/internal/repository"
 )
 
@@ -14,13 +15,17 @@ type UserService interface {
 }
 
 type userService struct {
-	repo repository.UserRepo
+	repo   repository.UserRepo
+	hasher security.Hasher
 }
 
 var _ UserService = (*userService)(nil)
 
-func NewUserService(repo repository.UserRepo) UserService {
-	return &userService{repo: repo}
+func NewUserService(repo repository.UserRepo, hasher security.Hasher) UserService {
+	return &userService{
+		repo:   repo,
+		hasher: hasher,
+	}
 }
 
 type RegisterUserParams struct {
@@ -30,7 +35,13 @@ type RegisterUserParams struct {
 }
 
 func (s *userService) RegisterUser(ctx context.Context, params RegisterUserParams) (*model.User, error) {
-	newUser, err := s.repo.CreateUser(ctx, repository.CreateUserParams{Email: params.Email, PasswordHash: params.Password})
+	hash, err := s.hasher.Hash(params.Password)
+
+	if err != nil {
+		return nil, fmt.Errorf("hasher hash: %w", err)
+	}
+
+	newUser, err := s.repo.CreateUser(ctx, repository.CreateUserParams{Email: params.Email, PasswordHash: hash})
 
 	if err != nil {
 		return nil, fmt.Errorf("create user %s: %w", params.Email, err)
