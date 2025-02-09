@@ -92,12 +92,14 @@ docker-check:
 ## db: Starts the database container
 db: docker-check
 	@if ! $(CONTAINER_RUNTIME) ps | grep -q $(DB_CONTAINER); then \
+		echo "Starting database container..."; \
 		$(CONTAINER_RUNTIME) run --rm \
 		--env-file .env \
 		-p 5432:5432 \
 		-v ./configs/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf:Z \
 		-v ./configs/postgresql/psqlrc:/root/.psqlrc:Z \
-		--name $(DB_CONTAINER) -d postgres:17.0-alpine3.20; \
+		--name $(DB_CONTAINER) -d postgres:17.0-alpine3.20 \
+		-c 'config_file=/etc/postgresql/postgresql.conf'; \
 		sleep 5s; \
 	else \
 		echo "Database container $(DB_CONTAINER) is already running."; \
