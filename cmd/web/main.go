@@ -115,7 +115,7 @@ func loadEnv() error {
 	}
 
 	if err := env.Load(envFile); err != nil {
-		return fmt.Errorf("cannot load env file: %s", envFile)
+		return fmt.Errorf("cannot load env file %s, %w", envFile, err)
 	}
 
 	return nil
