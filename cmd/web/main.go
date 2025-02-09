@@ -21,8 +21,19 @@ import (
 )
 
 func main() {
+	setLogger(os.Stdout)
+
 	cfgFile := flag.String("cfg", "config.json", "Config file")
 	flag.Parse()
+
+	if err := loadEnv(); err != nil {
+		logFatal(fmt.Errorf("load env: %w", err))
+	}
+
+	cfg, err := config.LoadConfig(*cfgFile)
+	if err != nil {
+		logFatal(fmt.Errorf("load config: %w", err))
+	}
 
 	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer func() {
@@ -30,24 +41,12 @@ func main() {
 		slog.Info("Signal context cleanup complete.")
 	}()
 
-	if err := run(signalCtx, *cfgFile); err != nil {
-		slog.Error("fatal error", "reason", err)
-		os.Exit(1)
+	if err := run(signalCtx, cfg); err != nil {
+		logFatal(err)
 	}
 }
 
-func run(ctx context.Context, cfgFile string) error {
-	if err := loadEnv(); err != nil {
-		return fmt.Errorf("load env: %w", err)
-	}
-
-	cfg, err := config.LoadConfig(cfgFile)
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
-
-	setLogger(os.Stdout, &cfg.App)
-
+func run(ctx context.Context, cfg *config.Config) error {
 	db, err := openDB(ctx, &cfg.Db)
 	if err != nil {
 		return err
@@ -121,7 +120,7 @@ func loadEnv() error {
 	return nil
 }
 
-func setLogger(out io.Writer, cfg *config.EnvConfig) {
+func setLogger(out io.Writer) {
 	logLevel := new(slog.LevelVar)
 	opts := &slog.HandlerOptions{
 		Level: logLevel,
@@ -129,10 +128,12 @@ func setLogger(out io.Writer, cfg *config.EnvConfig) {
 
 	var handler slog.Handler
 
-	if cfg.Env == "production" {
+	e := os.Getenv("ENV")
+
+	if e == "production" {
 		handler = slog.NewJSONHandler(out, opts)
 	} else {
-		if cfg.IsDebug {
+		if env.GetBool("DEBUG", false) {
 			logLevel.Set(slog.LevelDebug)
 		}
 
@@ -167,4 +168,9 @@ func openDB(ctx context.Context, cfg *config.DBConfig) (*sql.DB, error) {
 
 	slog.Info("Connected to the database", "db", cfg.DB)
 	return db, nil
+}
+
+func logFatal(err error) {
+	slog.Error("fatal error", "reason", err)
+	os.Exit(1)
 }
