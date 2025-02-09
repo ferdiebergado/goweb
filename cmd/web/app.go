@@ -40,8 +40,9 @@ func (a *App) SetupRoutes() {
 	repo := repository.NewRepository(a.db)
 	service := service.NewService(repo)
 	baseHandler := handler.NewBaseHandler(service)
+	mountRoutes(a.router, baseHandler)
+
 	tmpl := handler.NewTemplate(a.cfg.Template)
 	baseHTMLHandler := handler.NewBaseHTMLHandler(tmpl)
-	mountRoutes(a.router, baseHandler)
 	mountBaseHTMLRoutes(a.router, baseHTMLHandler)
 }
