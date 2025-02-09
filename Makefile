@@ -112,7 +112,8 @@ psql: db
 
 lint:
 	@echo "Running golangci-lint..."
-	@golangci-lint run -v $(GO_MODULE_PATH) # Make sure golangci-lint.yml is configured
+	@command -v golangci-lint>/dev/null || go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.63.4
+	@golangci-lint run $(GO_MODULE_PATH) # Make sure golangci-lint.yml is configured
 
 format:
 	@echo "Running go fmt..."
@@ -152,8 +153,9 @@ migrate-drop: migrate-check
 
 ## gen: Generate source files
 gen:
+	@echo "Generating sources..."
 	@command -v mockgen >/dev/null || go install go.uber.org/mock/mockgen@latest
-	go generate -v ./...
+	@go generate -v ./...
 
 ## tidy: Add missing/Remove unused modules
 tidy:
@@ -168,6 +170,20 @@ assets-css-watch:
 
 assets-ts-watch:
 	@go run tools/esbuild.go -bundle -outdir=web/assets/js -sourcemap -watch web/app/ts/*.ts
+
+vulncheck:
+	@echo "Running govulncheck..."
+	@command -v govulncheck>/dev/null || go install golang.org/x/vuln/cmd/govulncheck@latest
+	@govulncheck ./...
+
+sec:
+	@echo "Running gosec..."
+	@command -v gosec>/dev/null || go install github.com/securego/gosec/v2/cmd/gosec@latest
+	@gosec ./...
+
+check:
+	@echo "Checking project..."
+	@go list -m -u all
 
 ## dev: Runs the app in development mode
 dev: db
