@@ -107,7 +107,7 @@ db: docker-check
 
 ## psql: Opens a session with the database instance
 psql: db
-	set -a; source $(ENV_FILE); set +a; \
+	@set -a; source $(ENV_FILE); set +a; \
 	$(CONTAINER_RUNTIME) exec -it $(DB_CONTAINER) psql -U $$POSTGRES_USER $$POSTGRES_DB
 
 lint:
