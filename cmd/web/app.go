@@ -38,11 +38,16 @@ func (a *App) SetupRoutes() {
 	}
 
 	repo := repository.NewRepository(a.db)
-	service := service.NewService(repo)
-	baseHandler := handler.NewBaseHandler(service)
+	baseService := service.NewService(repo)
+	baseHandler := handler.NewBaseHandler(baseService)
 	mountRoutes(a.router, baseHandler)
 
 	tmpl := handler.NewTemplate(a.cfg.Template)
 	baseHTMLHandler := handler.NewBaseHTMLHandler(tmpl)
 	mountBaseHTMLRoutes(a.router, baseHTMLHandler)
+
+	userRepo := repository.NewUserRepository(a.db)
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+	mountUserRoutes(a.router, userHandler)
 }

@@ -9,12 +9,12 @@ import (
 	"github.com/ferdiebergado/goweb/internal/service"
 )
 
-type userHandler struct {
+type UserHandler struct {
 	service service.UserService
 }
 
-func NewUserHandler(userService service.UserService) *userHandler {
-	return &userHandler{service: userService}
+func NewUserHandler(userService service.UserService) *UserHandler {
+	return &UserHandler{service: userService}
 }
 
 type RegisterUserResponse struct {
@@ -24,7 +24,7 @@ type RegisterUserResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (h *userHandler) HandleUserRegister(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) HandleUserRegister(w http.ResponseWriter, r *http.Request) {
 	params, err := request.JSON[service.RegisterUserParams](r)
 	if err != nil {
 		http.Error(w, "failed to decode json", http.StatusBadRequest)

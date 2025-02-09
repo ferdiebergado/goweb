@@ -15,3 +15,7 @@ func mountRoutes(r *goexpress.Router, h *handler.BaseHandler) {
 func mountBaseHTMLRoutes(r *goexpress.Router, h *handler.BaseHTMLHandler) {
 	r.Get("/dashboard", h.HandleDashboard)
 }
+
+func mountUserRoutes(r *goexpress.Router, h *handler.UserHandler) {
+	r.Post("/api/auth/register", h.HandleUserRegister)
+}
