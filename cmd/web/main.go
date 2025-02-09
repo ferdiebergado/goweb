@@ -145,12 +145,12 @@ func setLogger(out io.Writer, cfg *config.EnvConfig) {
 }
 
 func openDB(ctx context.Context, cfg *config.DBConfig) (*sql.DB, error) {
-	const dbStr = "postgres://%s:%s@localhost:5432/%s?sslmode=disable"
+	const dbStr = "postgres://%s:%s@%s:%d/%s?sslmode=%s"
 	slog.Info("Connecting to the database")
-	dsn := fmt.Sprintf(dbStr, cfg.User, cfg.Pass, cfg.DB)
+	dsn := fmt.Sprintf(dbStr, cfg.User, cfg.Pass, cfg.Host, cfg.Port, cfg.DB, cfg.SSLMode)
 	db, err := sql.Open(cfg.Driver, dsn)
 	if err != nil {
-		return nil, fmt.Errorf("database initialization: %w", err)
+		return nil, fmt.Errorf("initialize database: %w", err)
 	}
 
 	pingCtx, cancel := context.WithTimeout(ctx, time.Duration(cfg.PingTimeout)*time.Second)
