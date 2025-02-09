@@ -2,15 +2,13 @@ package handler
 
 import (
 	"net/http"
-
-	"github.com/ferdiebergado/goweb/internal/pkg/template"
 )
 
 type BaseHTMLHandler struct {
-	template *template.Template
+	template *Template
 }
 
-func NewBaseHTMLHandler(t *template.Template) *BaseHTMLHandler {
+func NewBaseHTMLHandler(t *Template) *BaseHTMLHandler {
 	return &BaseHTMLHandler{
 		template: t,
 	}

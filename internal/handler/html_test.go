@@ -8,7 +8,6 @@ import (
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/goweb/internal/config"
 	"github.com/ferdiebergado/goweb/internal/handler"
-	"github.com/ferdiebergado/goweb/internal/pkg/template"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +21,7 @@ func TestHandler_HandleDashboard(t *testing.T) {
 		PartialsPath: "partials",
 		PagesPath:    "pages",
 	}
-	tmpl := template.NewTemplate(mockCfg)
+	tmpl := handler.NewTemplate(mockCfg)
 	h := handler.NewBaseHTMLHandler(tmpl)
 
 	r := goexpress.New()

@@ -7,7 +7,6 @@ import (
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/goweb/internal/config"
 	"github.com/ferdiebergado/goweb/internal/handler"
-	"github.com/ferdiebergado/goweb/internal/pkg/template"
 	"github.com/ferdiebergado/goweb/internal/repository"
 	"github.com/ferdiebergado/goweb/internal/service"
 )
@@ -41,7 +40,7 @@ func (a *App) SetupRoutes() {
 	repo := repository.NewRepository(a.db)
 	service := service.NewService(repo)
 	baseHandler := handler.NewBaseHandler(service)
-	tmpl := template.NewTemplate(a.cfg.Template)
+	tmpl := handler.NewTemplate(a.cfg.Template)
 	baseHTMLHandler := handler.NewBaseHTMLHandler(tmpl)
 	mountRoutes(a.router, baseHandler)
 	mountBaseHTMLRoutes(a.router, baseHTMLHandler)
