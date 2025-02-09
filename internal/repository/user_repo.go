@@ -1,3 +1,4 @@
+//go:generate mockgen -destination=mock/user_repo_mock.go -package=mock . UserRepo
 package repository
 
 import (
@@ -7,12 +8,23 @@ import (
 	"github.com/ferdiebergado/goweb/internal/model"
 )
 
-type UserRepo struct {
+type UserRepo interface {
+	CreateUser(ctx context.Context, params CreateUserParams) (*model.User, error)
+}
+
+type userRepo struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) *UserRepo {
-	return &UserRepo{db: db}
+var _ UserRepo = (*userRepo)(nil)
+
+func NewUserRepository(db *sql.DB) UserRepo {
+	return &userRepo{db: db}
+}
+
+type CreateUserParams struct {
+	Email        string
+	PasswordHash string
 }
 
 const CreateUserQuery = `
@@ -21,9 +33,9 @@ VALUES $1, $2
 RETURNING id, email, created_at, updated_at
 `
 
-func (r *UserRepo) CreateUser(ctx context.Context, user model.User) (*model.User, error) {
+func (r *userRepo) CreateUser(ctx context.Context, params CreateUserParams) (*model.User, error) {
 	var newUser model.User
-	if err := r.db.QueryRowContext(ctx, CreateUserQuery, user.Email, user.PasswordHash).
+	if err := r.db.QueryRowContext(ctx, CreateUserQuery, params.Email, params.PasswordHash).
 		Scan(&newUser.ID, &newUser.Email, &newUser.CreatedAt, &newUser.UpdatedAt); err != nil {
 		return nil, err
 	}

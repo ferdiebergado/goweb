@@ -16,8 +16,9 @@ func NewBaseHandler(service service.Service) *BaseHandler {
 	return &BaseHandler{service: service}
 }
 
-type APIResponse struct {
+type APIResponse[T any] struct {
 	Message string `json:"message"`
+	Data    T
 }
 
 func (h *BaseHandler) HandleHealth(w http.ResponseWriter, r *http.Request) {
@@ -30,5 +31,5 @@ func (h *BaseHandler) HandleHealth(w http.ResponseWriter, r *http.Request) {
 		slog.Error("failed to connect to the database", "reason", err)
 	}
 
-	response.JSON(w, r, status, APIResponse{Message: msg})
+	response.JSON(w, r, status, APIResponse[any]{Message: msg})
 }

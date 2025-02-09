@@ -6,8 +6,8 @@ import (
 )
 
 type Model struct {
-	ID        string          `json:"id"`
-	Metadata  json.RawMessage `json:"metadata,omitempty"`
-	CreatedAt time.Time       `json:"created_at"`
-	UpdatedAt time.Time       `json:"updated_at"`
+	ID        string
+	Metadata  json.RawMessage
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
