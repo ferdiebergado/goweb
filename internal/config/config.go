@@ -21,6 +21,7 @@ type DBConfig struct {
 	Pass            string `json:"pass,omitempty"`
 	Host            string `json:"host,omitempty"`
 	Port            int    `json:"port,omitempty"`
+	SSLMode         string `json:"ssl_mode,omitempty"`
 	PingTimeout     int    `json:"ping_timeout,omitempty"`
 	DB              string `json:"db,omitempty"`
 	MaxOpenConns    int    `json:"max_open_conns,omitempty"`
@@ -70,6 +71,7 @@ func LoadConfig(path string) (*Config, error) {
 	config.Db.Host = env.Get("POSTGRES_HOST", config.Db.Host)
 	config.Db.Port = env.GetInt("POSTGRES_PORT", config.Db.Port)
 	config.Db.DB = env.Get("POSTGRES_DB", config.Db.DB)
+	config.Db.SSLMode = env.MustGet("POSTGRES_SSLMODE")
 	config.Db.PingTimeout = env.GetInt("DB_PING_TIMEOUT", config.Db.PingTimeout)
 	config.Db.MaxOpenConns = env.GetInt("DB_MAX_OPEN_CONNS", config.Db.MaxOpenConns)
 	config.Db.MaxIdleConns = env.GetInt("DB_MAX_IDLE_CONNS", config.Db.MaxIdleConns)
