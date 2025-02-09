@@ -157,6 +157,16 @@ gen:
 tidy:
 	go mod tidy
 
+assets-bundle:
+	@go run tools/esbuild.go -bundle -outdir=web/assets/css -minify web/app/css/*.css
+	@go run tools/esbuild.go -bundle -outdir=web/assets/js -minify web/app/ts/*.ts
+
+assets-css-watch:
+	@go run tools/esbuild.go -bundle -outdir=web/assets/css -sourcemap -watch web/app/css/*.css
+
+assets-ts-watch:
+	@go run tools/esbuild.go -bundle -outdir=web/assets/js -sourcemap -watch web/app/ts/*.ts
+
 ## dev: Runs the app in development mode
 dev: db
 	@command -v air >/dev/null || go install github.com/air-verse/air@latest
