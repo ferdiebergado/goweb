@@ -26,8 +26,10 @@ func main() {
 	cfgFile := flag.String("cfg", "config.json", "Config file")
 	flag.Parse()
 
-	if err := loadEnv(); err != nil {
-		logFatal(fmt.Errorf("load env: %w", err))
+	if appEnv := env.Get("ENV", "development"); appEnv != "production" {
+		if err := loadEnv(appEnv); err != nil {
+			logFatal(fmt.Errorf("load env: %w", err))
+		}
 	}
 
 	cfg, err := config.LoadConfig(*cfgFile)
@@ -93,19 +95,15 @@ func run(ctx context.Context, cfg *config.Config) error {
 	return nil
 }
 
-func loadEnv() error {
+func loadEnv(appEnv string) error {
 	const (
-		dev     = "development"
 		envDev  = ".env"
 		envTest = ".env.testing"
 	)
 	var envFile string
-	appEnv := env.Get("ENV", dev)
 
 	switch appEnv {
-	case "production":
-		return nil
-	case dev:
+	case "development":
 		envFile = envDev
 	case "testing":
 		envFile = envTest
