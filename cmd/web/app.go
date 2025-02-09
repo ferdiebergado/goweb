@@ -46,7 +46,3 @@ func (a *App) SetupRoutes() {
 	mountRoutes(a.router, baseHandler)
 	mountBaseHTMLRoutes(a.router, baseHTMLHandler)
 }
-
-func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	a.router.ServeHTTP(w, r)
-}
