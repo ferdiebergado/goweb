@@ -29,9 +29,9 @@ func NewUserService(repo repository.UserRepo, hasher security.Hasher) UserServic
 }
 
 type RegisterUserParams struct {
-	Email           string `json:"email,omitempty"`
-	Password        string `json:"password,omitempty"`
-	PasswordConfirm string `json:"password_confirm,omitempty"`
+	Email           string `json:"email,omitempty" validate:"required,email"`
+	Password        string `json:"password,omitempty" validate:"required"`
+	PasswordConfirm string `json:"password_confirm,omitempty" validate:"required,eqfield=Password"`
 }
 
 func (s *userService) RegisterUser(ctx context.Context, params RegisterUserParams) (*model.User, error) {

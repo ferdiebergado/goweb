@@ -7,14 +7,19 @@ import (
 	"github.com/ferdiebergado/gopherkit/http/request"
 	"github.com/ferdiebergado/gopherkit/http/response"
 	"github.com/ferdiebergado/goweb/internal/service"
+	"github.com/go-playground/validator/v10"
 )
 
 type UserHandler struct {
-	service service.UserService
+	service   service.UserService
+	validater *validator.Validate
 }
 
-func NewUserHandler(userService service.UserService) *UserHandler {
-	return &UserHandler{service: userService}
+func NewUserHandler(userService service.UserService, v *validator.Validate) *UserHandler {
+	return &UserHandler{
+		service:   userService,
+		validater: v,
+	}
 }
 
 type RegisterUserResponse struct {
@@ -31,7 +36,11 @@ func (h *UserHandler) HandleUserRegister(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// TODO: validate params
+	if err = h.validater.Struct(params); err != nil {
+		validationError(w, r, err)
+		return
+	}
+
 	user, err := h.service.RegisterUser(r.Context(), params)
 	if err != nil {
 		response.ServerError(w, r, err)

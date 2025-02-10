@@ -11,14 +11,19 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"reflect"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/env"
 	"github.com/ferdiebergado/goweb/internal/config"
+	"github.com/go-playground/validator/v10"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
+
+var validate *validator.Validate
 
 func main() {
 	setLogger(os.Stdout)
@@ -56,7 +61,8 @@ func run(ctx context.Context, cfg *config.Config) error {
 	defer db.Close()
 
 	router := goexpress.New()
-	app := NewApp(cfg, db, router)
+	setValidate()
+	app := NewApp(cfg, db, router, validate)
 	app.SetupRoutes()
 
 	server := &http.Server{ // #nosec G112 -- timeouts will be handled by reverse proxy
@@ -166,6 +172,19 @@ func openDB(ctx context.Context, cfg *config.DBConfig) (*sql.DB, error) {
 
 	slog.Info("Connected to the database", "db", cfg.DB)
 	return db, nil
+}
+
+func setValidate() {
+	validate = validator.New()
+
+	// register function to get tag name from json tags.
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
 }
 
 func logFatal(err error) {
