@@ -1,35 +1,31 @@
 package handler
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/ferdiebergado/gopherkit/http/response"
-	"github.com/ferdiebergado/goweb/internal/service"
+	"github.com/go-playground/validator/v10"
 )
 
-type BaseHandler struct {
-	service service.Service
-}
-
-func NewBaseHandler(service service.Service) *BaseHandler {
-	return &BaseHandler{service: service}
-}
+type validationErrors map[string][]string
 
 type APIResponse[T any] struct {
-	Message string `json:"message"`
-	Data    T
+	Message string           `json:"message"`
+	Errors  validationErrors `json:"errors,omitempty"`
+	Data    T                `json:"data,omitempty"`
 }
 
-func (h *BaseHandler) HandleHealth(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
-	msg := "healthy"
+func validationError(w http.ResponseWriter, r *http.Request, err error) {
+	errs := make(map[string][]string, 0)
 
-	if err := h.service.PingDB(r.Context()); err != nil {
-		status = http.StatusServiceUnavailable
-		msg = "unhealthy"
-		slog.Error("failed to connect to the database", "reason", err)
+	for _, e := range err.(validator.ValidationErrors) {
+		errs[e.Field()] = append(errs[e.Field()], e.Tag())
 	}
 
-	response.JSON(w, r, status, APIResponse[any]{Message: msg})
+	res := APIResponse[any]{
+		Message: "Invalid input.",
+		Errors:  errs,
+	}
+
+	response.JSON(w, r, http.StatusBadRequest, res)
 }
