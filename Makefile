@@ -186,7 +186,7 @@ check:
 	@go list -m -u all
 
 ## dev: Runs the app in development mode
-dev: db
+dev: db migrate-up
 	@command -v air >/dev/null || go install github.com/air-verse/air@latest
 	@air
 
