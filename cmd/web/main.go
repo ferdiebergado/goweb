@@ -19,6 +19,7 @@ import (
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/gopherkit/env"
 	"github.com/ferdiebergado/goweb/internal/config"
+	"github.com/ferdiebergado/goweb/internal/handler"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -62,7 +63,7 @@ func run(ctx context.Context, cfg *config.Config) error {
 
 	router := goexpress.New()
 	setValidate()
-	app := NewApp(cfg, db, router, validate)
+	app := handler.NewApp(cfg, db, router, validate)
 	app.SetupRoutes()
 
 	server := &http.Server{ // #nosec G112 -- timeouts will be handled by reverse proxy

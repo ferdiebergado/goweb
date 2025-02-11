@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"database/sql"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/goweb/internal/config"
-	"github.com/ferdiebergado/goweb/internal/handler"
 	"github.com/ferdiebergado/goweb/internal/pkg/security"
 	"github.com/ferdiebergado/goweb/internal/repository"
 	"github.com/ferdiebergado/goweb/internal/service"
@@ -44,16 +43,16 @@ func (a *App) SetupRoutes() {
 
 	repo := repository.NewRepository(a.db)
 	baseService := service.NewService(repo)
-	baseHandler := handler.NewBaseHandler(baseService)
+	baseHandler := NewBaseHandler(baseService)
 	mountRoutes(a.router, baseHandler)
 
-	tmpl := handler.NewTemplate(a.cfg.Template)
-	baseHTMLHandler := handler.NewBaseHTMLHandler(tmpl)
+	tmpl := NewTemplate(a.cfg.Template)
+	baseHTMLHandler := NewBaseHTMLHandler(tmpl)
 	mountBaseHTMLRoutes(a.router, baseHTMLHandler)
 
 	userRepo := repository.NewUserRepository(a.db)
 	hasher := &security.Argon2Hasher{}
 	userService := service.NewUserService(userRepo, hasher)
-	userHandler := handler.NewUserHandler(userService, a.validater)
+	userHandler := NewUserHandler(userService, a.validater)
 	mountUserRoutes(a.router, userHandler)
 }
