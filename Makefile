@@ -130,7 +130,7 @@ migrate-new: migrate-check
 ## migrate-up: Runs the database migrations
 migrate-up: migrate-check
 	@echo "Running database migrations (up)..."
-	@set -a; source $(ENV_FILE); set +a; \
+	@set -a; . $(ENV_FILE); set +a; \
 	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" up
 
 ## migrate-down: Rolls back the database migrations
