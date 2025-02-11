@@ -53,6 +53,6 @@ func (a *App) SetupRoutes() {
 	userRepo := repository.NewUserRepository(a.db)
 	hasher := &security.Argon2Hasher{}
 	userService := service.NewUserService(userRepo, hasher)
-	userHandler := NewUserHandler(userService, a.validater)
-	mountUserRoutes(a.router, userHandler)
+	userHandler := NewUserHandler(userService)
+	mountUserRoutes(a.router, userHandler, a.validater)
 }
