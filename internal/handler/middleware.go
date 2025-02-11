@@ -11,15 +11,15 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type ctxKey string
+type ctxKey int
 
-const jsonCtxKey ctxKey = "decodeJSON"
+var paramsCtxKey ctxKey
 
 func DecodeJSON[T any]() goexpress.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("Content-Type") == jsonCT {
-				slog.Info("Decoding json...")
+				slog.Info("Decoding json body...")
 				var decoded T
 				decoder := json.NewDecoder(r.Body)
 				decoder.DisallowUnknownFields()
@@ -27,7 +27,7 @@ func DecodeJSON[T any]() goexpress.Middleware {
 					badRequestError(w, r, err)
 					return
 				}
-				ctx := context.WithValue(r.Context(), jsonCtxKey, decoded)
+				ctx := context.WithValue(r.Context(), paramsCtxKey, decoded)
 				r = r.WithContext(ctx)
 			}
 			next.ServeHTTP(w, r)
@@ -39,7 +39,7 @@ func ValidateInput[T any](validate *validator.Validate) goexpress.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			slog.Info("Validating input...")
-			ctxVal := r.Context().Value(jsonCtxKey)
+			ctxVal := r.Context().Value(paramsCtxKey)
 			params, ok := ctxVal.(T)
 
 			if !ok {
@@ -58,11 +58,11 @@ func ValidateInput[T any](validate *validator.Validate) goexpress.Middleware {
 	}
 }
 
-func NewJSONContext[T any](ctx context.Context, t T) context.Context {
-	return context.WithValue(ctx, jsonCtxKey, t)
+func NewParamsContext[T any](ctx context.Context, t T) context.Context {
+	return context.WithValue(ctx, paramsCtxKey, t)
 }
 
-func FromJSONContext[T any](ctx context.Context) (T, bool) {
-	t, ok := ctx.Value(jsonCtxKey).(T)
+func FromParamsContext[T any](ctx context.Context) (T, bool) {
+	t, ok := ctx.Value(paramsCtxKey).(T)
 	return t, ok
 }
