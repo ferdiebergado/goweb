@@ -50,8 +50,8 @@ func TestUserHandler_HandleUserRegister_Success(t *testing.T) {
 		Email: testEmail,
 	}
 
-	mockService.EXPECT().RegisterUser(context.Background(), params).Return(user, nil)
-	userHandler := handler.NewUserHandler(mockService, validate)
+	mockService.EXPECT().RegisterUser(handler.NewParamsContext(context.Background(), params), params).Return(user, nil)
+	userHandler := handler.NewUserHandler(mockService)
 	r := goexpress.New()
 	r.Post(regUrl, userHandler.HandleUserRegister,
 		handler.DecodeJSON[service.RegisterUserParams](), handler.ValidateInput[service.RegisterUserParams](validate))
@@ -63,6 +63,7 @@ func TestUserHandler_HandleUserRegister_Success(t *testing.T) {
 	}
 
 	req := httptest.NewRequest("POST", regUrl, bytes.NewBuffer(paramsJSON))
+	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
@@ -89,9 +90,10 @@ func TestUserHandler_HandleUserRegister_InvalidInput(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	mockService := mock.NewMockUserService(ctrl)
-	userHandler := handler.NewUserHandler(mockService, validate)
+	userHandler := handler.NewUserHandler(mockService)
 	r := goexpress.New()
-	r.Post(regUrl, userHandler.HandleUserRegister)
+	r.Post(regUrl, userHandler.HandleUserRegister,
+		handler.DecodeJSON[service.RegisterUserParams](), handler.ValidateInput[service.RegisterUserParams](validate))
 
 	var tests = []struct {
 		name   string
@@ -109,6 +111,7 @@ func TestUserHandler_HandleUserRegister_InvalidInput(t *testing.T) {
 			}
 
 			req := httptest.NewRequest("POST", regUrl, bytes.NewBuffer(paramsJSON))
+			req.Header.Set("Content-Type", "application/json")
 			rr := httptest.NewRecorder()
 			r.ServeHTTP(rr, req)
 
