@@ -53,7 +53,8 @@ func TestUserHandler_HandleUserRegister_Success(t *testing.T) {
 	mockService.EXPECT().RegisterUser(context.Background(), params).Return(user, nil)
 	userHandler := handler.NewUserHandler(mockService, validate)
 	r := goexpress.New()
-	r.Post(regUrl, userHandler.HandleUserRegister)
+	r.Post(regUrl, userHandler.HandleUserRegister,
+		handler.DecodeJSON[service.RegisterUserParams](), handler.ValidateInput[service.RegisterUserParams](validate))
 
 	paramsJSON, err := json.Marshal(params)
 

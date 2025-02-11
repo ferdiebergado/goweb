@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ferdiebergado/gopherkit/http/request"
 	"github.com/ferdiebergado/gopherkit/http/response"
 	"github.com/ferdiebergado/goweb/internal/service"
 	"github.com/go-playground/validator/v10"
@@ -30,17 +29,7 @@ type RegisterUserResponse struct {
 }
 
 func (h *UserHandler) HandleUserRegister(w http.ResponseWriter, r *http.Request) {
-	params, err := request.JSON[service.RegisterUserParams](r)
-	if err != nil {
-		http.Error(w, "failed to decode json", http.StatusBadRequest)
-		return
-	}
-
-	if err = h.validater.Struct(params); err != nil {
-		validationError(w, r, err)
-		return
-	}
-
+	params := r.Context().Value(jsonCtxKey).(service.RegisterUserParams)
 	user, err := h.service.RegisterUser(r.Context(), params)
 	if err != nil {
 		response.ServerError(w, r, err)
