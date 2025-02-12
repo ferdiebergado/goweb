@@ -20,6 +20,7 @@ import (
 	"github.com/ferdiebergado/gopherkit/env"
 	"github.com/ferdiebergado/goweb/internal/config"
 	"github.com/ferdiebergado/goweb/internal/handler"
+	"github.com/ferdiebergado/goweb/internal/pkg/security"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -62,13 +63,18 @@ func run(ctx context.Context, cfg *config.Config) error {
 	defer db.Close()
 
 	router := goexpress.New()
-	setValidate()
-	app := handler.NewApp(cfg, db, router, validate)
+	configureValidator()
+	tmpl := handler.NewTemplate(cfg.Template)
+	hasher := &security.Argon2Hasher{}
+	app := handler.NewApp(cfg, db, router, validate, tmpl, hasher)
 	app.SetupRoutes()
 
 	server := &http.Server{ // #nosec G112 -- timeouts will be handled by reverse proxy
-		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler: app.Router(),
+		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
+		Handler:      app.Router(),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
 	// Run server in a separate goroutine
@@ -175,7 +181,7 @@ func openDB(ctx context.Context, cfg *config.DBConfig) (*sql.DB, error) {
 	return db, nil
 }
 
-func setValidate() {
+func configureValidator() {
 	validate = validator.New()
 
 	// register function to get tag name from json tags.

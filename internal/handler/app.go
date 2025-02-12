@@ -17,14 +17,18 @@ type App struct {
 	db        *sql.DB
 	router    *goexpress.Router
 	validater *validator.Validate
+	template  *Template
+	hasher    security.Hasher
 }
 
-func NewApp(cfg *config.Config, db *sql.DB, r *goexpress.Router, v *validator.Validate) *App {
+func NewApp(cfg *config.Config, db *sql.DB, r *goexpress.Router, v *validator.Validate, t *Template, h security.Hasher) *App {
 	return &App{
 		cfg:       cfg,
 		db:        db,
 		router:    r,
 		validater: v,
+		template:  t,
+		hasher:    h,
 	}
 }
 
@@ -46,13 +50,11 @@ func (a *App) SetupRoutes() {
 	baseHandler := NewBaseHandler(baseService)
 	mountRoutes(a.router, baseHandler)
 
-	tmpl := NewTemplate(a.cfg.Template)
-	baseHTMLHandler := NewBaseHTMLHandler(tmpl)
+	baseHTMLHandler := NewBaseHTMLHandler(a.template)
 	mountBaseHTMLRoutes(a.router, baseHTMLHandler)
 
 	userRepo := repository.NewUserRepository(a.db)
-	hasher := &security.Argon2Hasher{}
-	userService := service.NewUserService(userRepo, hasher)
+	userService := service.NewUserService(userRepo, a.hasher)
 	userHandler := NewUserHandler(userService)
 	mountUserRoutes(a.router, userHandler, a.validater)
 }
