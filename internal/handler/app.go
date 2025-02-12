@@ -37,8 +37,8 @@ func (a *App) SetupRoutes() {
 	a.router.Use(goexpress.LogRequest)
 
 	if a.cfg.App.Env == "development" {
-		// TODO: extract prefix to const
-		a.router.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("web/assets/"))))
+		const prefix = "/assets/"
+		a.router.Handle("GET "+prefix, http.StripPrefix(prefix, http.FileServer(http.Dir("web/assets/"))))
 	}
 
 	repo := repository.NewRepository(a.db)
