@@ -3,6 +3,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/ferdiebergado/goweb/internal/model"
@@ -29,11 +31,20 @@ func NewUserService(repo repository.UserRepo, hasher security.Hasher) UserServic
 }
 
 type RegisterUserParams struct {
-	Email           string
-	Password        string
+	Email    string
+	Password string
 }
 
 func (s *userService) RegisterUser(ctx context.Context, params RegisterUserParams) (*model.User, error) {
+	exists, err := s.repo.FindUserByEmail(ctx, params.Email)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+
+	if exists != nil {
+		return nil, fmt.Errorf("user with email %s already exists", params.Email)
+	}
+
 	hash, err := s.hasher.Hash(params.Password)
 
 	if err != nil {

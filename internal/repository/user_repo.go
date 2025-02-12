@@ -10,6 +10,7 @@ import (
 
 type UserRepo interface {
 	CreateUser(ctx context.Context, params CreateUserParams) (*model.User, error)
+	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
 }
 
 type userRepo struct {
@@ -40,4 +41,19 @@ func (r *userRepo) CreateUser(ctx context.Context, params CreateUserParams) (*mo
 		return nil, err
 	}
 	return &newUser, nil
+}
+
+const FindUserByEmailQuery = `
+SELECT id, email, created_at, updated_at FROM users
+WHERE email = $1
+LIMIT 1
+`
+
+func (r *userRepo) FindUserByEmail(ctx context.Context, email string) (*model.User, error) {
+	var user model.User
+	if err := r.db.QueryRowContext(ctx, FindUserByEmailQuery, email).
+		Scan(&user.ID, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

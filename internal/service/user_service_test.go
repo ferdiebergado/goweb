@@ -2,6 +2,7 @@ package service_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -26,8 +27,8 @@ func TestUserService_RegisterUser(t *testing.T) {
 	mockHasher := secMock.NewMockHasher(ctrl)
 
 	regParams := service.RegisterUserParams{
-		Email:           testEmail,
-		Password:        testPass,
+		Email:    testEmail,
+		Password: testPass,
 	}
 
 	params := repository.CreateUserParams{
@@ -39,6 +40,8 @@ func TestUserService_RegisterUser(t *testing.T) {
 		Model: model.Model{ID: "1", CreatedAt: time.Now(), UpdatedAt: time.Now()},
 		Email: testEmail,
 	}
+
+	mockRepo.EXPECT().FindUserByEmail(context.Background(), testEmail).Return(nil, sql.ErrNoRows)
 
 	mockHasher.EXPECT().Hash(regParams.Password).Return(testPassHashed, nil)
 
