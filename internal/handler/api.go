@@ -11,7 +11,7 @@ import (
 
 const jsonCT = "application/json"
 
-type validationErrors map[string][]string
+type validationErrors map[string]string
 
 type APIResponse[T any] struct {
 	Message string           `json:"message"`
@@ -20,10 +20,10 @@ type APIResponse[T any] struct {
 }
 
 func validationError(w http.ResponseWriter, r *http.Request, err error) {
-	errs := make(map[string][]string, 0)
+	errs := make(map[string]string, 0)
 
 	for _, e := range err.(validator.ValidationErrors) {
-		errs[e.Field()] = append(errs[e.Field()], e.Tag())
+		errs[e.Field()] = e.Tag()
 	}
 
 	res := APIResponse[any]{
