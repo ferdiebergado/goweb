@@ -32,7 +32,7 @@ type RegisterUserResponse struct {
 }
 
 func (h *UserHandler) HandleUserRegister(w http.ResponseWriter, r *http.Request) {
-	req := r.Context().Value(paramsCtxKey).(RegisterUserRequest)
+	req, _ := FromParamsContext[RegisterUserRequest](r.Context())
 	params := service.RegisterUserParams{
 		Email:    req.Email,
 		Password: req.Password,
