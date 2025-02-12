@@ -18,6 +18,12 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 	}
 }
 
+type RegisterUserRequest struct {
+	Email           string `json:"email,omitempty" validate:"required,email"`
+	Password        string `json:"password,omitempty" validate:"required"`
+	PasswordConfirm string `json:"password_confirm,omitempty" validate:"required,eqfield=Password"`
+}
+
 type RegisterUserResponse struct {
 	ID        string    `json:"id"`
 	Email     string    `json:"email"`
@@ -26,7 +32,11 @@ type RegisterUserResponse struct {
 }
 
 func (h *UserHandler) HandleUserRegister(w http.ResponseWriter, r *http.Request) {
-	params := r.Context().Value(paramsCtxKey).(service.RegisterUserParams)
+	req := r.Context().Value(paramsCtxKey).(RegisterUserRequest)
+	params := service.RegisterUserParams{
+		Email:    req.Email,
+		Password: req.Password,
+	}
 	user, err := h.service.RegisterUser(r.Context(), params)
 	if err != nil {
 		response.ServerError(w, r, err)

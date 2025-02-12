@@ -28,7 +28,6 @@ func TestUserService_RegisterUser(t *testing.T) {
 	regParams := service.RegisterUserParams{
 		Email:           testEmail,
 		Password:        testPass,
-		PasswordConfirm: testPass,
 	}
 
 	params := repository.CreateUserParams{

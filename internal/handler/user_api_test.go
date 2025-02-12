@@ -39,10 +39,14 @@ func TestUserHandler_HandleUserRegister_Success(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	mockService := mock.NewMockUserService(ctrl)
-	params := service.RegisterUserParams{
+	regRequest := handler.RegisterUserRequest{
 		Email:           testEmail,
 		Password:        testPass,
 		PasswordConfirm: testPass,
+	}
+	regParams := service.RegisterUserParams{
+		Email:    testEmail,
+		Password: testPass,
 	}
 
 	user := &model.User{
@@ -50,19 +54,19 @@ func TestUserHandler_HandleUserRegister_Success(t *testing.T) {
 		Email: testEmail,
 	}
 
-	mockService.EXPECT().RegisterUser(handler.NewParamsContext(context.Background(), params), params).Return(user, nil)
+	mockService.EXPECT().RegisterUser(handler.NewParamsContext(context.Background(), regRequest), regParams).Return(user, nil)
 	userHandler := handler.NewUserHandler(mockService)
 	r := goexpress.New()
 	r.Post(regUrl, userHandler.HandleUserRegister,
-		handler.DecodeJSON[service.RegisterUserParams](), handler.ValidateInput[service.RegisterUserParams](validate))
+		handler.DecodeJSON[handler.RegisterUserRequest](), handler.ValidateInput[handler.RegisterUserRequest](validate))
 
-	paramsJSON, err := json.Marshal(params)
+	reqJSON, err := json.Marshal(regRequest)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	req := httptest.NewRequest("POST", regUrl, bytes.NewBuffer(paramsJSON))
+	req := httptest.NewRequest("POST", regUrl, bytes.NewBuffer(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
@@ -93,24 +97,24 @@ func TestUserHandler_HandleUserRegister_InvalidInput(t *testing.T) {
 	userHandler := handler.NewUserHandler(mockService)
 	r := goexpress.New()
 	r.Post(regUrl, userHandler.HandleUserRegister,
-		handler.DecodeJSON[service.RegisterUserParams](), handler.ValidateInput[service.RegisterUserParams](validate))
+		handler.DecodeJSON[handler.RegisterUserRequest](), handler.ValidateInput[handler.RegisterUserRequest](validate))
 
 	var tests = []struct {
 		name   string
-		params service.RegisterUserParams
+		regRequest handler.RegisterUserRequest
 	}{
-		{"Empty email", service.RegisterUserParams{Password: testPass, PasswordConfirm: testPass}},
+		{"Empty email", handler.RegisterUserRequest{Password: testPass, PasswordConfirm: testPass}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockService.EXPECT().RegisterUser(gomock.Any(), gomock.Any()).Times(0)
-			paramsJSON, err := json.Marshal(tt.params)
+			reqJSON, err := json.Marshal(tt.regRequest)
 
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			req := httptest.NewRequest("POST", regUrl, bytes.NewBuffer(paramsJSON))
+			req := httptest.NewRequest("POST", regUrl, bytes.NewBuffer(reqJSON))
 			req.Header.Set("Content-Type", "application/json")
 			rr := httptest.NewRecorder()
 			r.ServeHTTP(rr, req)

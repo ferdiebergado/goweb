@@ -2,7 +2,6 @@ package handler
 
 import (
 	"github.com/ferdiebergado/goexpress"
-	"github.com/ferdiebergado/goweb/internal/service"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -19,5 +18,5 @@ func mountBaseHTMLRoutes(r *goexpress.Router, h *BaseHTMLHandler) {
 
 func mountUserRoutes(r *goexpress.Router, h *UserHandler, v *validator.Validate) {
 	r.Post("/api/auth/register", h.HandleUserRegister,
-		DecodeJSON[service.RegisterUserParams](), ValidateInput[service.RegisterUserParams](v))
+		DecodeJSON[RegisterUserRequest](), ValidateInput[RegisterUserRequest](v))
 }
