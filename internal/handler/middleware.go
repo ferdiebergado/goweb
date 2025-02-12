@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -10,10 +9,6 @@ import (
 	"github.com/ferdiebergado/goexpress"
 	"github.com/go-playground/validator/v10"
 )
-
-type ctxKey int
-
-var paramsCtxKey ctxKey
 
 func DecodeJSON[T any]() goexpress.Middleware {
 	return func(next http.Handler) http.Handler {
@@ -28,7 +23,7 @@ func DecodeJSON[T any]() goexpress.Middleware {
 					badRequestError(w, r, err)
 					return
 				}
-				ctx := context.WithValue(r.Context(), paramsCtxKey, decoded)
+				ctx := NewParamsContext(r.Context(), decoded)
 				r = r.WithContext(ctx)
 			}
 			next.ServeHTTP(w, r)
@@ -40,12 +35,11 @@ func ValidateInput[T any](validate *validator.Validate) goexpress.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			slog.Info("Validating input...")
-			ctxVal := r.Context().Value(paramsCtxKey)
-			params, ok := ctxVal.(T)
+			params, ok := FromParamsContext[T](r.Context())
 
 			if !ok {
 				var t T
-				badRequestError(w, r, fmt.Errorf("cannot type assert context value %v to %T", ctxVal, t))
+				badRequestError(w, r, fmt.Errorf("cannot type assert context value to %T", t))
 				return
 			}
 
@@ -57,13 +51,4 @@ func ValidateInput[T any](validate *validator.Validate) goexpress.Middleware {
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-func NewParamsContext[T any](ctx context.Context, t T) context.Context {
-	return context.WithValue(ctx, paramsCtxKey, t)
-}
-
-func FromParamsContext[T any](ctx context.Context) (T, bool) {
-	t, ok := ctx.Value(paramsCtxKey).(T)
-	return t, ok
 }
