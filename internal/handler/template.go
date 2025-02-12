@@ -23,14 +23,22 @@ type Template struct {
 	templates templateMap
 }
 
-func NewTemplate(cfg config.TemplateConfig) *Template {
+func NewTemplate(cfg config.TemplateConfig) (*Template, error) {
 	layoutFile := filepath.Join(cfg.Path, cfg.LayoutFile)
 	layoutTmpl := template.Must(template.New("layout").Funcs(funcMap()).ParseFiles(layoutFile))
-	parsePartials(cfg.Path, cfg.PartialsPath, layoutTmpl)
+	if err := parsePartials(cfg.Path, cfg.PartialsPath, layoutTmpl); err != nil {
+		return nil, err
+	}
+
+	tmplMap, err := parsePages(cfg.Path, cfg.PagesPath, layoutTmpl)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &Template{
-		templates: parsePages(cfg.Path, cfg.PagesPath, layoutTmpl),
-	}
+		templates: tmplMap,
+	}, nil
 }
 
 func (t *Template) Render(w http.ResponseWriter, r *http.Request, name string, data any) {
@@ -58,7 +66,7 @@ func (t *Template) Render(w http.ResponseWriter, r *http.Request, name string, d
 }
 
 // Parse all partial templates into the layout template
-func parsePartials(templateDir, partialsDir string, layoutTmpl *template.Template) {
+func parsePartials(templateDir, partialsDir string, layoutTmpl *template.Template) error {
 	err := fs.WalkDir(os.DirFS(templateDir), partialsDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -74,14 +82,15 @@ func parsePartials(templateDir, partialsDir string, layoutTmpl *template.Templat
 	})
 
 	if err != nil {
-		panic(fmt.Errorf("load partials templates: %w", err))
+		return fmt.Errorf("load partials templates: %w", err)
 	}
 
 	slog.Debug("layout", "name", layoutTmpl.Name())
+	return nil
 }
 
 // Parse main templates from pagesDir
-func parsePages(templateDir, pagesDir string, layoutTmpl *template.Template) templateMap {
+func parsePages(templateDir, pagesDir string, layoutTmpl *template.Template) (templateMap, error) {
 	tmplMap := make(templateMap)
 	err := fs.WalkDir(os.DirFS(templateDir), pagesDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -97,10 +106,10 @@ func parsePages(templateDir, pagesDir string, layoutTmpl *template.Template) tem
 	})
 
 	if err != nil {
-		panic(fmt.Errorf("load pages templates: %w", err))
+		return nil, fmt.Errorf("load pages templates: %w", err)
 	}
 
-	return tmplMap
+	return tmplMap, nil
 }
 
 // Retrieve the template func maps

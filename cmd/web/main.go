@@ -64,7 +64,10 @@ func run(ctx context.Context, cfg *config.Config) error {
 
 	router := goexpress.New()
 	configureValidator()
-	tmpl := handler.NewTemplate(cfg.Template)
+	tmpl, err := handler.NewTemplate(cfg.Template)
+	if err != nil {
+		return err
+	}
 	hasher := &security.Argon2Hasher{}
 	app := handler.NewApp(cfg, db, router, validate, tmpl, hasher)
 	app.SetupRoutes()
@@ -72,9 +75,9 @@ func run(ctx context.Context, cfg *config.Config) error {
 	server := &http.Server{ // #nosec G112 -- timeouts will be handled by reverse proxy
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler:      app.Router(),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		ReadTimeout:  time.Duration(cfg.Server.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(cfg.Server.WriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(cfg.Server.IdleTimeout) * time.Second,
 	}
 
 	// Run server in a separate goroutine
