@@ -33,6 +33,9 @@ type DBConfig struct {
 
 type ServerConfig struct {
 	Port            int `json:"port,omitempty"`
+	ReadTimeout     int `json:"read_timeout,omitempty"`
+	WriteTimeout    int `json:"write_timeout,omitempty"`
+	IdleTimeout     int `json:"idle_timeout,omitempty"`
 	ShutdownTimeout int `json:"shutdown_timeout,omitempty"`
 }
 
