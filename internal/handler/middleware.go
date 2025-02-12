@@ -18,6 +18,7 @@ var paramsCtxKey ctxKey
 func DecodeJSON[T any]() goexpress.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			slog.Info("Checking content-type for application/json...")
 			if r.Header.Get("Content-Type") == jsonCT {
 				slog.Info("Decoding json body...")
 				var decoded T
