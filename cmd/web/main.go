@@ -33,7 +33,7 @@ func main() {
 	cfgFile := flag.String("cfg", "config.json", "Config file")
 	flag.Parse()
 
-	if appEnv := env.Get("ENV", "development"); appEnv != "production" {
+	if appEnv := os.Getenv("ENV"); appEnv != "production" {
 		if err := loadEnv(appEnv); err != nil {
 			logFatal(fmt.Errorf("load env: %w", err))
 		}
