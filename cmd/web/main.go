@@ -73,7 +73,7 @@ func run(ctx context.Context, cfg *config.Config) error {
 	app := handler.NewApp(cfg, db, router, validate, tmpl, hasher)
 	app.SetupRoutes()
 
-	server := &http.Server{ // #nosec G112 -- timeouts will be handled by reverse proxy
+	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler:      app.Router(),
 		ReadTimeout:  time.Duration(cfg.Server.ReadTimeout) * time.Second,
