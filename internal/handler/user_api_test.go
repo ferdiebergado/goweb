@@ -134,3 +134,46 @@ func TestUserHandler_HandleUserRegister_InvalidInput(t *testing.T) {
 		})
 	}
 }
+
+func TestUserHandler_HandleUserRegister_DuplicateUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockService := mock.NewMockUserService(ctrl)
+	regRequest := handler.RegisterUserRequest{
+		Email:           testEmail,
+		Password:        testPass,
+		PasswordConfirm: testPass,
+	}
+	regParams := service.RegisterUserParams{
+		Email:    testEmail,
+		Password: testPass,
+	}
+
+	mockService.EXPECT().RegisterUser(handler.NewParamsContext(context.Background(), regRequest), regParams).Return(nil, service.ErrDuplicateUser)
+	userHandler := handler.NewUserHandler(mockService)
+	r := goexpress.New()
+	r.Post(regUrl, userHandler.HandleUserRegister,
+		handler.DecodeJSON[handler.RegisterUserRequest](), handler.ValidateInput[handler.RegisterUserRequest](validate))
+
+	reqJSON, err := json.Marshal(regRequest)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest("POST", regUrl, bytes.NewBuffer(reqJSON))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	res := rr.Result()
+	defer res.Body.Close()
+
+	assert.Equal(t, http.StatusUnprocessableEntity, res.StatusCode)
+	assert.Equal(t, ct, res.Header["Content-Type"][0])
+
+	var apiRes handler.APIResponse[handler.RegisterUserResponse]
+	if err := json.Unmarshal(rr.Body.Bytes(), &apiRes); err != nil {
+		t.Fatal("failed to decode json", err)
+	}
+
+	assert.Equal(t, service.ErrDuplicateUser.Error(), apiRes.Message)
+}

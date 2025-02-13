@@ -22,6 +22,7 @@ type userService struct {
 }
 
 var _ UserService = (*userService)(nil)
+var ErrDuplicateUser = errors.New("duplicate user")
 
 func NewUserService(repo repository.UserRepo, hasher security.Hasher) UserService {
 	return &userService{
@@ -36,13 +37,13 @@ type RegisterUserParams struct {
 }
 
 func (s *userService) RegisterUser(ctx context.Context, params RegisterUserParams) (*model.User, error) {
-	exists, err := s.repo.FindUserByEmail(ctx, params.Email)
+	existing, err := s.repo.FindUserByEmail(ctx, params.Email)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 
-	if exists != nil {
-		return nil, fmt.Errorf("user with email %s already exists", params.Email)
+	if existing != nil {
+		return nil, fmt.Errorf("user with email %s already exists: %w", params.Email, ErrDuplicateUser)
 	}
 
 	hash, err := s.hasher.Hash(params.Password)
@@ -51,11 +52,11 @@ func (s *userService) RegisterUser(ctx context.Context, params RegisterUserParam
 		return nil, fmt.Errorf("hasher hash: %w", err)
 	}
 
-	newUser, err := s.repo.CreateUser(ctx, repository.CreateUserParams{Email: params.Email, PasswordHash: hash})
+	user, err := s.repo.CreateUser(ctx, repository.CreateUserParams{Email: params.Email, PasswordHash: hash})
 
 	if err != nil {
 		return nil, fmt.Errorf("create user %s: %w", params.Email, err)
 	}
 
-	return newUser, nil
+	return user, nil
 }
