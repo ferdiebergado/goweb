@@ -35,12 +35,12 @@ RETURNING id, email, created_at, updated_at
 `
 
 func (r *userRepo) CreateUser(ctx context.Context, params CreateUserParams) (*model.User, error) {
-	var newUser model.User
+	var user model.User
 	if err := r.db.QueryRowContext(ctx, CreateUserQuery, params.Email, params.PasswordHash).
-		Scan(&newUser.ID, &newUser.Email, &newUser.CreatedAt, &newUser.UpdatedAt); err != nil {
+		Scan(&user.ID, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
 		return nil, err
 	}
-	return &newUser, nil
+	return &user, nil
 }
 
 const FindUserByEmailQuery = `
