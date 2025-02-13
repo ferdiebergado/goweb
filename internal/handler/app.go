@@ -21,7 +21,8 @@ type App struct {
 	hasher    security.Hasher
 }
 
-func NewApp(cfg *config.Config, db *sql.DB, r *goexpress.Router, v *validator.Validate, t *Template, h security.Hasher) *App {
+func NewApp(cfg *config.Config, db *sql.DB, r *goexpress.Router,
+	v *validator.Validate, t *Template, h security.Hasher) *App {
 	return &App{
 		cfg:       cfg,
 		db:        db,
