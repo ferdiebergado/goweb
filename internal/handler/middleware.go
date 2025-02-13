@@ -35,11 +35,11 @@ func ValidateInput[T any](validate *validator.Validate) goexpress.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			slog.Info("Validating input...")
-			params, ok := FromParamsContext[T](r.Context())
+			ctxVal, params, ok := FromParamsContext[T](r.Context())
 
 			if !ok {
 				var t T
-				badRequestError(w, r, fmt.Errorf("cannot type assert context value to %T", t))
+				badRequestError(w, r, fmt.Errorf("cannot type assert context value %v to %T", ctxVal, t))
 				return
 			}
 
