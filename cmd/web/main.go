@@ -57,7 +57,7 @@ func main() {
 }
 
 func run(ctx context.Context, cfg *config.Config) error {
-	db, err := openDB(ctx, &cfg.Db)
+	db, err := connectDB(ctx, &cfg.Db)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func setLogger(out io.Writer, appEnv string) {
 	slog.SetDefault(logger)
 }
 
-func openDB(ctx context.Context, cfg *config.DBConfig) (*sql.DB, error) {
+func connectDB(ctx context.Context, cfg *config.DBConfig) (*sql.DB, error) {
 	const dbStr = "postgres://%s:%s@%s:%d/%s?sslmode=%s"
 	slog.Info("Connecting to the database")
 	dsn := fmt.Sprintf(dbStr, cfg.User, cfg.Pass, cfg.Host, cfg.Port, cfg.DB, cfg.SSLMode)
