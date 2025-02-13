@@ -28,12 +28,13 @@ import (
 var validate *validator.Validate
 
 func main() {
-	setLogger(os.Stdout)
+	appEnv := os.Getenv("ENV")
+	setLogger(os.Stdout, appEnv)
 
 	cfgFile := flag.String("cfg", "config.json", "Config file")
 	flag.Parse()
 
-	if appEnv := os.Getenv("ENV"); appEnv != "production" {
+	if appEnv != "production" {
 		if err := loadEnv(appEnv); err != nil {
 			logFatal(fmt.Errorf("load env: %w", err))
 		}
@@ -134,7 +135,7 @@ func loadEnv(appEnv string) error {
 	return nil
 }
 
-func setLogger(out io.Writer) {
+func setLogger(out io.Writer, appEnv string) {
 	logLevel := new(slog.LevelVar)
 	opts := &slog.HandlerOptions{
 		Level: logLevel,
@@ -142,9 +143,7 @@ func setLogger(out io.Writer) {
 
 	var handler slog.Handler
 
-	e := os.Getenv("ENV")
-
-	if e == "production" {
+	if appEnv == "production" {
 		handler = slog.NewJSONHandler(out, opts)
 	} else {
 		if env.GetBool("DEBUG", false) {
