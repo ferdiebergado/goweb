@@ -42,7 +42,21 @@ func badRequestError(w http.ResponseWriter, r *http.Request, err error) {
 		res := APIResponse[any]{
 			Message: "Invalid input",
 		}
-		response.JSON(w, r, http.StatusBadRequest, res)
+		response.JSON(w, r, status, res)
+		return
+	}
+	http.Error(w, http.StatusText(status), status)
+}
+
+func unprocessableError(w http.ResponseWriter, r *http.Request, err error) {
+	const status = http.StatusUnprocessableEntity
+	slog.Error("request error", "reason", err, "request", fmt.Sprint(r))
+
+	if r.Header.Get("Content-Type") == jsonCT {
+		res := APIResponse[any]{
+			Message: err.Error(),
+		}
+		response.JSON(w, r, status, res)
 		return
 	}
 	http.Error(w, http.StatusText(status), status)
