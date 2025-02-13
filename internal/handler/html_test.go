@@ -21,7 +21,10 @@ func TestHandler_HandleDashboard(t *testing.T) {
 		PartialsPath: "partials",
 		PagesPath:    "pages",
 	}
-	tmpl := handler.NewTemplate(mockCfg)
+	tmpl, err := handler.NewTemplate(mockCfg)
+	if err != nil {
+		t.Fatalf("cant parse template: %v", err)
+	}
 	h := handler.NewBaseHTMLHandler(tmpl)
 
 	r := goexpress.New()
