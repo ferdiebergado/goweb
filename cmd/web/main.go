@@ -28,6 +28,19 @@ import (
 var validate *validator.Validate
 
 func main() {
+	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer func() {
+		stop()
+		slog.Info("Signal context cleanup complete.")
+	}()
+
+	if err := run(signalCtx); err != nil {
+		slog.Error("fatal error", "reason", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context) error {
 	appEnv := os.Getenv("ENV")
 	setLogger(os.Stdout, appEnv)
 
@@ -36,27 +49,15 @@ func main() {
 
 	if appEnv != "production" {
 		if err := loadEnv(appEnv); err != nil {
-			logFatal(fmt.Errorf("load env: %w", err))
+			return fmt.Errorf("load env: %w", err)
 		}
 	}
 
 	cfg, err := config.LoadConfig(*cfgFile)
 	if err != nil {
-		logFatal(fmt.Errorf("load config: %w", err))
+		return fmt.Errorf("load config: %w", err)
 	}
 
-	signalCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer func() {
-		stop()
-		slog.Info("Signal context cleanup complete.")
-	}()
-
-	if err := run(signalCtx, cfg); err != nil {
-		logFatal(err)
-	}
-}
-
-func run(ctx context.Context, cfg *config.Config) error {
 	db, err := connectDB(ctx, &cfg.Db)
 	if err != nil {
 		return err
@@ -194,9 +195,4 @@ func configureValidator() {
 		}
 		return name
 	})
-}
-
-func logFatal(err error) {
-	slog.Error("fatal error", "reason", err)
-	os.Exit(1)
 }
