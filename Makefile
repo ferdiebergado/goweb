@@ -128,13 +128,13 @@ migrate-new: migrate-check
 	@migrate create -dir $(MIGRATIONS_DIR) -ext sql -seq $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 
 ## migrate-up: Runs the database migrations
-migrate-up: migrate-check
+migrate-up: migrate-check db
 	@echo "Running database migrations (up)..."
 	@set -a; . $(ENV_FILE); set +a; \
 	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" up
 
 ## migrate-down: Rolls back the database migrations
-migrate-down: migrate-check
+migrate-down: migrate-check db
 	@echo "Running database migrations (down)..."
 	@set -a; source $(ENV_FILE); set +a; \
 	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" down
@@ -146,7 +146,7 @@ migrate-force:
 	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" force $(wordlist 2, $(words $(MAKECMDGOALS)), $(MAKECMDGOALS))
 
 ## migrate-drop: Drops all tables in the database
-migrate-drop: migrate-check
+migrate-drop: migrate-check db
 	@echo "Dropping all database tables..."
 	@set -a; source $(ENV_FILE); set +a; \
 	migrate -path $(MIGRATIONS_DIR) -database "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable" drop
@@ -192,7 +192,7 @@ sqlc:
 	sqlc generate -f db/sqlc.yaml
 
 ## dev: Runs the app in development mode
-dev: db migrate-up
+dev: migrate-up
 	@command -v air >/dev/null || go install github.com/air-verse/air@latest
 	@ENV=development air
 
