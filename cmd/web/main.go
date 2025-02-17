@@ -42,16 +42,16 @@ func main() {
 
 func run(ctx context.Context) error {
 	appEnv := os.Getenv("ENV")
-	setLogger(os.Stdout, appEnv)
-
-	cfgFile := flag.String("cfg", "config.json", "Config file")
-	flag.Parse()
-
 	if appEnv != "production" {
 		if err := loadEnv(appEnv); err != nil {
 			return fmt.Errorf("load env: %w", err)
 		}
 	}
+
+	setLogger(os.Stdout, appEnv)
+
+	cfgFile := flag.String("cfg", "config.json", "Config file")
+	flag.Parse()
 
 	cfg, err := config.LoadConfig(*cfgFile)
 	if err != nil {
@@ -85,7 +85,7 @@ func run(ctx context.Context) error {
 	// Run server in a separate goroutine
 	serverErr := make(chan error, 1)
 	go func() {
-		slog.Info("Server started", "address", server.Addr, "env", cfg.App.Env)
+		slog.Info("Server started", "address", server.Addr, "env", cfg.App.Env, slog.Bool("debug", cfg.App.IsDebug))
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
