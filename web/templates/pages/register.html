@@ -1,0 +1,10 @@
+{{define "content"}}
+<h2>Register</h2>
+<form id="x-form" action="/api/auth/register" method="post">
+  <label for="email">Email</label>
+  <input id="email" type="email" name="email" required autofocus />
+  <button type="submit">Submit</button>
+</form>
+{{end}} {{define "scripts"}}
+<script src="js/form.js"></script>
+{{end}}
