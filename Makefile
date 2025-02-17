@@ -185,12 +185,6 @@ check:
 	@echo "Checking project..."
 	@go list -m -u all
 
-sqlc:
-	@command -v sqlc >/dev/null || go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-	set -a; . $(ENV_FILE); set +a; \
-	DSN="postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@localhost:5432/$$POSTGRES_DB?sslmode=disable"; \
-	sqlc generate -f db/sqlc.yaml
-
 ## dev: Runs the app in development mode
 dev: migrate-up
 	@command -v air >/dev/null || go install github.com/air-verse/air@latest
