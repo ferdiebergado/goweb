@@ -23,7 +23,7 @@ type App struct {
 
 func NewApp(cfg *config.Config, db *sql.DB, r *goexpress.Router,
 	v *validator.Validate, t *Template, h security.Hasher) *App {
-	return &App{
+	app := &App{
 		cfg:       cfg,
 		db:        db,
 		router:    r,
@@ -31,16 +31,20 @@ func NewApp(cfg *config.Config, db *sql.DB, r *goexpress.Router,
 		template:  t,
 		hasher:    h,
 	}
+	app.SetupMiddlewares()
+	return app
 }
 
 func (a *App) Router() *goexpress.Router {
 	return a.router
 }
 
-func (a *App) SetupRoutes() {
+func (a *App) SetupMiddlewares() {
 	a.router.Use(goexpress.RecoverFromPanic)
 	a.router.Use(goexpress.LogRequest)
+}
 
+func (a *App) SetupRoutes() {
 	if a.cfg.App.Env == "development" {
 		const prefix = "/assets/"
 		a.router.Handle("GET "+prefix, http.StripPrefix(prefix, http.FileServer(http.Dir("web/assets/"))))
