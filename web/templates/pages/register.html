@@ -3,8 +3,12 @@
 <form id="x-form" action="/api/auth/register" method="post">
   <label for="email">Email</label>
   <input id="email" type="email" name="email" required autofocus />
+  <label for="password">Password</label>
+  <input id="password" type="password" name="password" required />
+  <label for="password_confirm">Confirm password</label>
+  <input id="password" type="password" name="password_confirm" required />
   <button type="submit">Submit</button>
 </form>
 {{end}} {{define "scripts"}}
-<script src="js/form.js"></script>
+<script src="/assets/js/form.js"></script>
 {{end}}
