@@ -20,3 +20,7 @@ func mountUserRoutes(r *goexpress.Router, h *UserHandler, v *validator.Validate)
 	r.Post("/api/auth/register", h.HandleUserRegister,
 		DecodeJSON[RegisterUserRequest](), ValidateInput[RegisterUserRequest](v))
 }
+
+func mountUserHTMLRoutes(r *goexpress.Router, h *UserHTMLHandler) {
+	r.Get("/auth/register", h.HandleRegister)
+}

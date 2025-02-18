@@ -58,4 +58,7 @@ func (a *App) SetupRoutes() {
 	userService := service.NewUserService(userRepo, a.hasher)
 	userHandler := NewUserHandler(userService)
 	mountUserRoutes(a.router, userHandler, a.validater)
+
+	userHTMLHandler := NewUserHTMLHandler(a.template)
+	mountUserHTMLRoutes(a.router, userHTMLHandler)
 }
