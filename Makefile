@@ -169,7 +169,7 @@ assets-css-watch:
 	@go run tools/esbuild.go -bundle -outdir=web/assets/css -sourcemap -watch web/app/css/*.css
 
 assets-ts-watch:
-	@go run tools/esbuild.go -bundle -outdir=web/assets/js -sourcemap -watch web/app/ts/*.ts
+	@go run tools/esbuild.go -bundle -outdir=web/assets/js -target=es2015 -sourcemap -watch web/app/ts/*.ts
 
 vulncheck:
 	@echo "Running govulncheck..."
