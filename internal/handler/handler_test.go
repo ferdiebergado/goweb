@@ -25,7 +25,7 @@ func TestHandler_HandleDashboard(t *testing.T) {
 	if err != nil {
 		t.Fatalf("cant parse template: %v", err)
 	}
-	h := handler.NewBaseHTMLHandler(tmpl)
+	h := handler.NewBaseHandler(tmpl)
 
 	r := goexpress.New()
 	r.Get("/dashboard", h.HandleDashboard)
