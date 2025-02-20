@@ -18,7 +18,7 @@ func TestRepository_PingDB(t *testing.T) {
 
 	mock.ExpectPing()
 
-	repo := repository.NewRepository(db)
+	repo := repository.NewBaseRepository(db)
 	err = repo.Ping(context.Background())
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
