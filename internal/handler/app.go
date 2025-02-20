@@ -51,18 +51,11 @@ func (a *App) SetupRoutes() {
 	}
 
 	repo := repository.NewRepository(a.db)
-	baseService := service.NewService(repo)
-	baseHandler := NewBaseHandler(baseService)
-	mountRoutes(a.router, baseHandler)
+	svc := service.NewService(repo, a.hasher)
 
-	baseHTMLHandler := NewBaseHTMLHandler(a.template)
-	mountBaseHTMLRoutes(a.router, baseHTMLHandler)
+	htmlHandler := NewHandler(svc, a.template)
+	apiHandler := NewAPIHandler(*svc)
 
-	userRepo := repository.NewUserRepository(a.db)
-	userService := service.NewUserService(userRepo, a.hasher)
-	userHandler := NewUserHandler(userService)
-	mountUserRoutes(a.router, userHandler, a.validater)
-
-	userHTMLHandler := NewUserHTMLHandler(a.template)
-	mountUserHTMLRoutes(a.router, userHTMLHandler)
+	mountRoutes(a.router, htmlHandler)
+	mountAPIRoutes(a.router, apiHandler, a.validater)
 }

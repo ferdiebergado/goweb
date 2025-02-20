@@ -5,22 +5,17 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func mountRoutes(r *goexpress.Router, h *BaseHandler) {
+func mountAPIRoutes(r *goexpress.Router, h *APIHandler, v *validator.Validate) {
 	r.Group("/api", func(gr *goexpress.Router) *goexpress.Router {
-		gr.Get("/health", h.HandleHealth)
+		gr.Get("/health", h.Base.HandleHealth)
+		gr.Post("/auth/register", h.User.HandleUserRegister,
+			DecodeJSON[RegisterUserRequest](), ValidateInput[RegisterUserRequest](v))
+
 		return gr
 	})
 }
 
-func mountBaseHTMLRoutes(r *goexpress.Router, h *BaseHTMLHandler) {
-	r.Get("/dashboard", h.HandleDashboard)
-}
-
-func mountUserRoutes(r *goexpress.Router, h *UserHandler, v *validator.Validate) {
-	r.Post("/api/auth/register", h.HandleUserRegister,
-		DecodeJSON[RegisterUserRequest](), ValidateInput[RegisterUserRequest](v))
-}
-
-func mountUserHTMLRoutes(r *goexpress.Router, h *UserHTMLHandler) {
-	r.Get("/auth/register", h.HandleRegister)
+func mountRoutes(r *goexpress.Router, h *Handler) {
+	r.Get("/dashboard", h.Base.HandleDashboard)
+	r.Get("/auth/register", h.User.HandleRegister)
 }
