@@ -24,7 +24,7 @@ func TestHandler_HandleHealth(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := mock.NewMockService(ctrl)
 	mockService.EXPECT().PingDB(context.Background()).Return(nil)
-	baseHandler := handler.NewBaseHandler(mockService)
+	baseHandler := handler.NewBaseAPIHandler(mockService)
 	r := goexpress.New()
 	r.Get(url, baseHandler.HandleHealth)
 

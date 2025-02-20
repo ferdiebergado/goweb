@@ -55,7 +55,7 @@ func TestUserHandler_HandleUserRegister_Success(t *testing.T) {
 	}
 
 	mockService.EXPECT().RegisterUser(handler.NewParamsContext(context.Background(), regRequest), regParams).Return(user, nil)
-	userHandler := handler.NewUserHandler(mockService)
+	userHandler := handler.NewUserAPIHandler(mockService)
 	r := goexpress.New()
 	r.Post(regUrl, userHandler.HandleUserRegister,
 		handler.DecodeJSON[handler.RegisterUserRequest](), handler.ValidateInput[handler.RegisterUserRequest](validate))
@@ -94,13 +94,13 @@ func TestUserHandler_HandleUserRegister_InvalidInput(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	mockService := mock.NewMockUserService(ctrl)
-	userHandler := handler.NewUserHandler(mockService)
+	userHandler := handler.NewUserAPIHandler(mockService)
 	r := goexpress.New()
 	r.Post(regUrl, userHandler.HandleUserRegister,
 		handler.DecodeJSON[handler.RegisterUserRequest](), handler.ValidateInput[handler.RegisterUserRequest](validate))
 
 	var tests = []struct {
-		name   string
+		name       string
 		regRequest handler.RegisterUserRequest
 	}{
 		{"Empty email", handler.RegisterUserRequest{Password: testPass, PasswordConfirm: testPass}},
@@ -149,7 +149,7 @@ func TestUserHandler_HandleUserRegister_DuplicateUser(t *testing.T) {
 	}
 
 	mockService.EXPECT().RegisterUser(handler.NewParamsContext(context.Background(), regRequest), regParams).Return(nil, service.ErrDuplicateUser)
-	userHandler := handler.NewUserHandler(mockService)
+	userHandler := handler.NewUserAPIHandler(mockService)
 	r := goexpress.New()
 	r.Post(regUrl, userHandler.HandleUserRegister,
 		handler.DecodeJSON[handler.RegisterUserRequest](), handler.ValidateInput[handler.RegisterUserRequest](validate))
