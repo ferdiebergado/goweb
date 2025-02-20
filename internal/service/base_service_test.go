@@ -24,7 +24,7 @@ func TestService_PingDB(t *testing.T) {
 		assert.Greater(t, timeRemaining, 0*time.Second, "Deadline should be greater than zero") // Check it is not zero
 	}).Return(nil)
 
-	mockService := service.NewService(mockRepo)
+	mockService := service.NewBaseService(mockRepo)
 
 	err := mockService.PingDB(ctx)
 	assert.NoError(t, err)
