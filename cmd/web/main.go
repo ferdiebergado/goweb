@@ -41,8 +41,15 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	appEnv := os.Getenv("ENV")
-	if appEnv != "production" {
+	const (
+		envVar  = "ENV"
+		envDev  = "development"
+		envProd = "production"
+		cfgFile = "config.json"
+		fmtAddr = ":%d"
+	)
+	appEnv := env.Get(envVar, envDev)
+	if appEnv != envProd {
 		if err := loadEnv(appEnv); err != nil {
 			return fmt.Errorf("load env: %w", err)
 		}
@@ -50,10 +57,10 @@ func run(ctx context.Context) error {
 
 	setLogger(os.Stdout, appEnv)
 
-	cfgFile := flag.String("cfg", "config.json", "Config file")
+	cf := flag.String("cfg", cfgFile, "Config file")
 	flag.Parse()
 
-	cfg, err := config.LoadConfig(*cfgFile)
+	cfg, err := config.LoadConfig(*cf)
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
@@ -75,7 +82,7 @@ func run(ctx context.Context) error {
 	app.SetupRoutes()
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
+		Addr:         fmt.Sprintf(fmtAddr, cfg.Server.Port),
 		Handler:      app.Router(),
 		ReadTimeout:  time.Duration(cfg.Server.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(cfg.Server.WriteTimeout) * time.Second,
