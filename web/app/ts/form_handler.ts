@@ -1,13 +1,13 @@
 interface FormValues {
-  [key: string]: any; // Allows for flexible form data
+  [key: string]: any;
 }
 
 interface ValidationRules {
-  [key: string]: (value: any) => string | undefined; // Validation function, returns error message or undefined if valid
+  [key: string]: (value: any) => string | undefined;
 }
 
 interface FormHandlerOptions {
-  url: string;
+  frmId?: string;
   method?: string; // Default: POST
   validationRules?: ValidationRules;
   onSuccess?: (data: any) => void;
@@ -15,14 +15,18 @@ interface FormHandlerOptions {
   onFinally?: () => void; // Called regardless of success or failure
 }
 
-class FormHandler {
+export class FormHandler {
   private options: FormHandlerOptions;
+  private form: HTMLFormElement;
 
   constructor(options: FormHandlerOptions) {
     this.options = {
       method: 'POST', // Default method
       ...options,
     };
+    this.form = document.getElementById(
+      this.options.frmId || 'x-form'
+    ) as HTMLFormElement;
   }
 
   public async submit(formValues: FormValues): Promise<void> {
@@ -34,7 +38,7 @@ class FormHandler {
       }
 
       // 2. API Request
-      const response = await fetch(this.options.url, {
+      const response = await fetch(this.form.action, {
         method: this.options.method,
         headers: {
           'Content-Type': 'application/json',
@@ -79,6 +83,16 @@ class FormHandler {
     }
   }
 
+  public handleSubmit(): void {
+    this.form.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(this.form);
+      const formValues = Object.fromEntries(formData);
+      this.submit(formValues);
+    });
+  }
+
   private validate(formValues: FormValues): { [key: string]: string } {
     const errors: { [key: string]: string } = {};
     if (this.options.validationRules) {
@@ -93,45 +107,3 @@ class FormHandler {
     return errors;
   }
 }
-
-// Example Usage:
-
-const myFormHandler = new FormHandler({
-  url: 'https://api.example.com/submit', // Replace with your API endpoint
-  validationRules: {
-    name: (value) => (value ? undefined : 'Name is required'),
-    email: (value) => {
-      if (!value) return 'Email is required';
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(value) ? undefined : 'Invalid email format';
-    },
-    message: (value) => (value ? undefined : 'Message is required'),
-  },
-  onSuccess: (data) => {
-    console.log('Success:', data);
-    alert('Form submitted successfully!');
-  },
-  onError: (error) => {
-    console.error('Error:', error);
-    if (typeof error === 'object') {
-      for (const key in error) {
-        alert(`${key}: ${error[key]}`); // Display specific error messages
-      }
-    } else {
-      alert(error); // Or display a general error message
-    }
-  },
-  onFinally: () => {
-    console.log('Form submission process finished.');
-  },
-});
-
-const xform = document.getElementById('x-form') as HTMLFormElement; // Replace with your form ID
-
-xform.addEventListener('submit', (event) => {
-  event.preventDefault(); // Prevent default form submission
-
-  const formData = new FormData(xform);
-  const formValues = Object.fromEntries(formData);
-  myFormHandler.submit(formValues);
-});
