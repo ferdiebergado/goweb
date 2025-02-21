@@ -2,8 +2,6 @@ package handler
 
 import (
 	"net/http"
-
-	"github.com/ferdiebergado/goweb/internal/service"
 )
 
 type Handler struct {
@@ -11,7 +9,7 @@ type Handler struct {
 	User UserHandler
 }
 
-func NewHandler(svc *service.Service, tmpl *Template) *Handler {
+func NewHandler(tmpl *Template) *Handler {
 	return &Handler{
 		Base: *NewBaseHandler(tmpl),
 		User: *NewUserHandler(tmpl),

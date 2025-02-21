@@ -61,7 +61,7 @@ func (a *App) SetupRoutes() {
 	repo := repository.NewRepository(a.db)
 	svc := service.NewService(repo, a.hasher)
 
-	htmlHandler := NewHandler(svc, a.template)
+	htmlHandler := NewHandler(a.template)
 	apiHandler := NewAPIHandler(*svc)
 
 	mountRoutes(a.router, htmlHandler)
