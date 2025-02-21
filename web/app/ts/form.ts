@@ -1,6 +1,6 @@
 const form = document.getElementById('x-form') as HTMLFormElement;
 
-form.addEventListener('click', async (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   try {
     const frmData = new FormData(form);
@@ -15,7 +15,7 @@ form.addEventListener('click', async (e) => {
     const res = await fetch(form.action, opts);
     if (res.ok) {
       const data = await res.json();
-      console.dir(data);
+      console.log(data);
     }
   } catch (error) {
     console.error(error);
