@@ -78,7 +78,17 @@ func run(ctx context.Context) error {
 		return err
 	}
 	hasher := &security.Argon2Hasher{}
-	app := handler.NewApp(cfg, db, router, validate, tmpl, hasher)
+
+	deps := &handler.AppDependencies{
+		Config:    cfg,
+		DB:        db,
+		Router:    router,
+		Validator: validate,
+		Template:  tmpl,
+		Hasher:    hasher,
+	}
+
+	app := handler.NewApp(deps)
 	app.SetupRoutes()
 
 	server := &http.Server{

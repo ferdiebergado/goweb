@@ -21,15 +21,23 @@ type App struct {
 	hasher    security.Hasher
 }
 
-func NewApp(cfg *config.Config, db *sql.DB, r *goexpress.Router,
-	v *validator.Validate, t *Template, h security.Hasher) *App {
+type AppDependencies struct {
+	Config    *config.Config
+	DB        *sql.DB
+	Router    *goexpress.Router
+	Validator *validator.Validate
+	Template  *Template
+	Hasher    security.Hasher
+}
+
+func NewApp(deps *AppDependencies) *App {
 	app := &App{
-		cfg:       cfg,
-		db:        db,
-		router:    r,
-		validater: v,
-		template:  t,
-		hasher:    h,
+		cfg:       deps.Config,
+		db:        deps.DB,
+		router:    deps.Router,
+		validater: deps.Validator,
+		template:  deps.Template,
+		hasher:    deps.Hasher,
 	}
 	app.SetupMiddlewares()
 	return app
