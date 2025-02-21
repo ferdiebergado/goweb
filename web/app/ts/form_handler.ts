@@ -8,11 +8,11 @@ interface ValidationRules {
 
 interface FormHandlerOptions {
   frmId?: string;
-  method?: string; // Default: POST
+  method?: string;
   validationRules?: ValidationRules;
   onSuccess?: (data: any) => void;
   onError?: (error: string | any) => void;
-  onFinally?: () => void; // Called regardless of success or failure
+  onFinally?: () => void;
 }
 
 export class FormHandler {
