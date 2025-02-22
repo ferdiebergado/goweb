@@ -5,13 +5,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
-	"reflect"
-	"strings"
 	"syscall"
 	"time"
 
@@ -20,9 +17,20 @@ import (
 	"github.com/ferdiebergado/goweb/internal/config"
 	"github.com/ferdiebergado/goweb/internal/handler"
 	"github.com/ferdiebergado/goweb/internal/infra/db"
+	"github.com/ferdiebergado/goweb/internal/pkg/environment"
+	"github.com/ferdiebergado/goweb/internal/pkg/logging"
 	"github.com/ferdiebergado/goweb/internal/pkg/security"
+	"github.com/ferdiebergado/goweb/internal/pkg/validation"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/jackc/pgx/v5/stdlib"
+)
+
+const (
+	envVar  = "ENV"
+	envDev  = "development"
+	envProd = "production"
+	cfgFile = "config.json"
+	fmtAddr = ":%d"
 )
 
 var validate *validator.Validate
@@ -41,21 +49,14 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	const (
-		envVar  = "ENV"
-		envDev  = "development"
-		envProd = "production"
-		cfgFile = "config.json"
-		fmtAddr = ":%d"
-	)
 	appEnv := env.Get(envVar, envDev)
 	if appEnv != envProd {
-		if err := loadEnv(appEnv); err != nil {
+		if err := environment.LoadEnv(appEnv); err != nil {
 			return fmt.Errorf("load env: %w", err)
 		}
 	}
 
-	setLogger(os.Stdout, appEnv)
+	logging.SetLogger(os.Stdout, appEnv)
 
 	cf := flag.String("cfg", cfgFile, "Config file")
 	flag.Parse()
@@ -72,7 +73,7 @@ func run(ctx context.Context) error {
 	defer db.Close()
 
 	router := goexpress.New()
-	configureValidator()
+	validate = validation.ConfigureValidator()
 	tmpl, err := handler.NewTemplate(cfg.Template)
 	if err != nil {
 		return err
@@ -128,63 +129,4 @@ func run(ctx context.Context) error {
 
 	slog.Info("Server gracefully shut down.")
 	return nil
-}
-
-func loadEnv(appEnv string) error {
-	const (
-		envDev  = ".env"
-		envTest = ".env.testing"
-	)
-	var envFile string
-
-	switch appEnv {
-	case "development":
-		envFile = envDev
-	case "testing":
-		envFile = envTest
-	default:
-		return fmt.Errorf("unrecognized environment: %s", appEnv)
-	}
-
-	if err := env.Load(envFile); err != nil {
-		return fmt.Errorf("cannot load env file %s, %w", envFile, err)
-	}
-
-	return nil
-}
-
-func setLogger(out io.Writer, appEnv string) {
-	logLevel := new(slog.LevelVar)
-	opts := &slog.HandlerOptions{
-		Level: logLevel,
-	}
-
-	var handler slog.Handler
-
-	if appEnv == "production" {
-		handler = slog.NewJSONHandler(out, opts)
-	} else {
-		if env.GetBool("DEBUG", false) {
-			logLevel.Set(slog.LevelDebug)
-		}
-
-		opts.AddSource = true
-		handler = slog.NewTextHandler(out, opts)
-	}
-
-	logger := slog.New(handler)
-	slog.SetDefault(logger)
-}
-
-func configureValidator() {
-	validate = validator.New()
-
-	// register function to get tag name from json tags.
-	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-		if name == "-" {
-			return ""
-		}
-		return name
-	})
 }
