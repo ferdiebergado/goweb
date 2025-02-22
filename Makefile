@@ -162,14 +162,18 @@ tidy:
 	go mod tidy
 
 assets-bundle:
-	@go run tools/esbuild.go -bundle -outfile=web/assets/css/style.css -minify web/app/css/*.css
-	@go run tools/esbuild.go -bundle -outdir=web/assets/js -minify web/app/ts/*.ts
+	# @go run tools/esbuild.go -bundle -outfile=web/assets/css/style.css -minify web/app/css/*.css
+	@npx esbuild ./web/app/css/style.css --bundle --outfile=./web/assets/css/style.css --minify
+	# @go run tools/esbuild.go -bundle -outdir=web/assets/js -minify web/app/ts/*.ts
+	@npx esbuild ./web/app/ts/form.ts --bundle --outfile=./web/assets/js/form.js --tsconfig=./tsconfig.json --minify
 
 assets-css-watch:
-	@go run tools/esbuild.go -bundle -outfile=web/assets/css/style.css -sourcemap -watch web/app/css/style.css
+	# @go run tools/esbuild.go -bundle -outfile=web/assets/css/style.css -sourcemap -watch web/app/css/style.css
+	@npx esbuild ./web/app/css/style.css --bundle --outfile=./web/assets/css/style.css --watch
 
 assets-ts-watch:
-	@go run tools/esbuild.go -bundle -outdir=web/assets/js -target=es2015 -sourcemap -watch web/app/ts/*.ts
+	# @go run tools/esbuild.go -bundle -outdir=web/assets/js -target=es2015 -sourcemap -watch web/app/ts/*.ts
+	@npx esbuild ./web/app/ts/form.ts --bundle --outfile=./web/assets/js/form.js --tsconfig=./tsconfig.json --sourcemap --watch
 
 vulncheck:
 	@echo "Running govulncheck..."
