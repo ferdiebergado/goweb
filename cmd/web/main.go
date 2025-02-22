@@ -73,7 +73,7 @@ func run(ctx context.Context) error {
 	defer db.Close()
 
 	router := goexpress.New()
-	validate = validation.ConfigureValidator()
+	validate = validation.New()
 	tmpl, err := handler.NewTemplate(cfg.Template)
 	if err != nil {
 		return err

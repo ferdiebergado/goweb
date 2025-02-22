@@ -7,7 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func ConfigureValidator() *validator.Validate {
+func New() *validator.Validate {
 	validate := validator.New()
 
 	// register function to get tag name from json tags.
