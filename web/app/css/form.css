@@ -63,3 +63,14 @@
 		max-width: 100%;
 	}
 }
+
+.error {
+	color: red;
+	font-size: 0.8em;
+}
+
+.form-group input.has-error,
+.form-group textarea.has-error,
+.form-group select.has-error {
+	border: 1px solid red;
+}
