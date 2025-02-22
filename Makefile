@@ -162,11 +162,11 @@ tidy:
 	go mod tidy
 
 assets-bundle:
-	@go run tools/esbuild.go -bundle -outdir=web/assets/css -minify web/app/css/*.css
+	@go run tools/esbuild.go -bundle -outfile=web/assets/css/style.css -minify web/app/css/*.css
 	@go run tools/esbuild.go -bundle -outdir=web/assets/js -minify web/app/ts/*.ts
 
 assets-css-watch:
-	@go run tools/esbuild.go -bundle -outdir=web/assets/css -sourcemap -watch web/app/css/*.css
+	@go run tools/esbuild.go -bundle -outfile=web/assets/css/style.css -sourcemap -watch web/app/css/style.css
 
 assets-ts-watch:
 	@go run tools/esbuild.go -bundle -outdir=web/assets/js -target=es2015 -sourcemap -watch web/app/ts/*.ts

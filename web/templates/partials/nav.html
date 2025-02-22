@@ -1,13 +1,11 @@
-{{define "styles"}}
-<link rel="stylesheet" href="/assets/css/nav.css" />
-{{end}} {{define "nav"}}
+{{define "nav"}}
 <nav class="navbar">
   <a href="/" class="logo">GoWeb</a>
   <ul class="nav-links">
-    <li><a href="/">Home</a></li>
+    <li><a href="/dashboard">Home</a></li>
     <li><a href="#">About</a></li>
-    <li><a href="#">Services</a></li>
-    <li><a href="#">Contact</a></li>
+    <li><a href="/auth/login">Login</a></li>
+    <li><a href="/auth/register">Register</a></li>
   </ul>
   <div class="menu-toggle">&#9776;</div>
 </nav>

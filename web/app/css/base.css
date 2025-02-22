@@ -1,0 +1,14 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: "Arial", sans-serif;
+}
+
+body {
+	background-color: #f8f9fa;
+}
+
+main {
+	margin: 2rem;
+}
