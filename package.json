@@ -1,0 +1,27 @@
+{
+  "name": "goweb",
+  "version": "0.0.1",
+  "description": "frontend for goweb",
+  "main": "web/assets/js/app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/ferdiebergado/goweb"
+  },
+  "keywords": [
+    "go",
+    "web"
+  ],
+  "author": "Ferdinand Saporas Bergado <ferdiebergado@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/alpinejs": "^3.13.11",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.8"
+  }
+}
