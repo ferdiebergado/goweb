@@ -1,30 +1,56 @@
 {{define "content"}}
-<form
-  id="x-form"
-  class="form-container"
-  action="/api/auth/register"
-  method="post"
+<div
+  x-data="formComponent({
+  fields: [
+      { name: 'email', label: 'Email Address', type: 'email', required: true },
+      { name: 'password', label: 'Password', type: 'password', required: true },
+      { name: 'password_confirm', label: 'Retype Password', type: 'password', required: true }
+  ],
+  submitUrl: '/api/auth/register'
+})"
 >
-  <h2>Register</h2>
-  <div class="form-group">
-    <label for="email">Email</label>
-    <input id="email" type="email" name="email" required autofocus />
-  </div>
-  <div class="form-group">
-    <label for="password">Password</label>
-    <input id="password" type="password" name="password" required />
-  </div>
-  <div class="form-group">
-    <label for="password_confirm">Confirm password</label>
-    <input
-      id="password_confirm"
-      type="password"
-      name="password_confirm"
-      required
-    />
-  </div>
-  <button class="form-button" type="submit">Submit</button>
-</form>
+  <template x-if="!submitted">
+    <div class="form-container">
+      <h2>Register</h2>
+      <template x-for="field in fields" :key="field.name">
+        <div class="form-group">
+          <label :for="field.name" x-text="field.label"></label>
+          <template x-if="field.type === 'textarea'">
+            <textarea
+              :id="field.name"
+              x-model="formData[field.name]"
+              @blur="validateField(field.name)"
+              rows="4"
+            ></textarea>
+          </template>
+          <template x-if="field.type !== 'textarea'">
+            <input
+              :type="field.type"
+              :id="field.name"
+              :class="errors[field.name] ? 'has-error':''"
+              x-model="formData[field.name]"
+              @blur="validateField(field.name)"
+            />
+          </template>
+          <div
+            class="error"
+            x-show="errors[field.name]"
+            x-text="errors[field.name]"
+          ></div>
+        </div>
+      </template>
+      <button class="form-button" @click="submitForm" :disabled="isSubmitting">
+        <span x-text="isSubmitting ? 'Submitting...' : 'Submit'"></span>
+      </button>
+      <div x-show="submissionError" class="error">
+        Error submitting the form. Please try again.
+      </div>
+    </div>
+  </template>
+  <template x-if="submitted">
+    <p>Thank you for subscribing!</p>
+  </template>
+</div>
 {{end}} {{define "scripts"}}
-<script src="/assets/js/registration_form.js"></script>
+<script src="/assets/js/form.js" defer></script>
 {{end}}
