@@ -38,3 +38,6 @@ web/assets/css/**/*
 web/assets/js/**/*
 !web/assets/css/.gitkeep
 !web/assets/js/.gitkeep
+
+# node
+node_modules/
