@@ -14,7 +14,6 @@ exclude_dir = [
 	"testdata",
 	"build",
 	"web/app",
-	"web/assets",
 	"configs",
 	"tools",
 ]
@@ -53,9 +52,9 @@ time = false
 clean_on_exit = false
 
 [proxy]
-app_port = 0
-enabled = false
-proxy_port = 0
+app_port = 8080
+enabled = true
+proxy_port = 8888
 
 [screen]
 clear_on_rebuild = false
