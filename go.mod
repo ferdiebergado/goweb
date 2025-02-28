@@ -4,7 +4,6 @@ go 1.23
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/evanw/esbuild v0.25.0
 	github.com/ferdiebergado/goexpress v0.2.4
 	github.com/ferdiebergado/gopherkit v0.0.6
 	github.com/go-playground/validator/v10 v10.24.0
