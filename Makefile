@@ -163,13 +163,13 @@ tidy:
 
 assets-bundle:
 	@npx esbuild ./web/app/css/style.css --bundle --outfile=./web/assets/css/style.css --minify
-	@npx esbuild ./web/app/ts/form.ts --bundle --outfile=./web/assets/js/form.js --tsconfig=./tsconfig.json --minify
+	@npx esbuild ./web/app/ts/app.ts --bundle --outfile=./web/assets/js/app.js --tsconfig=./tsconfig.json --minify
 
 assets-css-watch:
 	@npx esbuild ./web/app/css/style.css --bundle --outfile=./web/assets/css/style.css --watch
 
 assets-ts-watch:
-	@npx esbuild ./web/app/ts/form.ts --bundle --outfile=./web/assets/js/form.js --tsconfig=./tsconfig.json --sourcemap --watch
+	@npx esbuild ./web/app/ts/app.ts --bundle --outfile=./web/assets/js/app.js --tsconfig=./tsconfig.json --sourcemap --watch
 
 vulncheck:
 	@echo "Running govulncheck..."
