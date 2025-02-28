@@ -1,8 +1,3 @@
-interface FormOptions {
-  fields: FormField[];
-  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  submitUrl: string;
-}
 interface FormField {
   name: string;
   label: string;
@@ -10,11 +5,17 @@ interface FormField {
   required: boolean;
 }
 
+interface FormOptions {
+  fields: FormField[];
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  submitUrl: string;
+}
+
 interface FormData {
   [key: string]: string;
 }
 
-interface Errors {
+interface FormErrors {
   [key: string]: string;
 }
 
@@ -23,7 +24,7 @@ export default (options: FormOptions) => ({
   method: options.method || 'POST',
   submitUrl: options.submitUrl || '',
   formData: {} as FormData,
-  errors: {} as Errors,
+  errors: {} as FormErrors,
   isSubmitting: false,
   submitted: false,
   submissionError: false,
