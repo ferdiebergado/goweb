@@ -36,7 +36,7 @@ export default (options: FormOptions) => ({
     });
   },
 
-  validateField(fieldName: string) {
+  validateField(fieldName: string): void {
     const field = this.fields.find((f) => f.name === fieldName);
     if (!field) return; // Field not found
 
@@ -58,7 +58,7 @@ export default (options: FormOptions) => ({
     delete this.errors[fieldName];
   },
 
-  isValidEmail(email: string) {
+  isValidEmail(email: string): boolean {
     // Basic email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -72,7 +72,7 @@ export default (options: FormOptions) => ({
     return Object.keys(this.errors).length === 0; // Return true if no errors
   },
 
-  async submitForm() {
+  async submitForm(): Promise<void> {
     if (!this.validateForm()) {
       console.log('invalid', this.errors);
 
