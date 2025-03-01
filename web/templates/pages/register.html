@@ -1,54 +1,38 @@
 {{define "content"}}
-<div
-  x-data="form({
-  fields: [
-      { name: 'email', label: 'Email Address', type: 'email', required: true },
-      { name: 'password', label: 'Password', type: 'password', required: true },
-      { name: 'password_confirm', label: 'Retype Password', type: 'password', required: true }
-  ],
-  submitUrl: '/api/auth/register'
-})"
->
-  <template x-if="!submitted">
-    <div class="form-container">
-      <h2>Register</h2>
-      <template x-for="field in fields" :key="field.name">
-        <div class="form-group">
-          <label :for="field.name" x-text="field.label"></label>
-          <template x-if="field.type === 'textarea'">
-            <textarea
-              :id="field.name"
-              x-model="formData[field.name]"
-              @blur="validateField(field.name)"
-              rows="4"
-            ></textarea>
-          </template>
-          <template x-if="field.type !== 'textarea'">
-            <input
-              :type="field.type"
-              :id="field.name"
-              :class="errors[field.name] ? 'has-error':''"
-              x-model="formData[field.name]"
-              @blur="validateField(field.name)"
-            />
-          </template>
-          <div
-            class="error"
-            x-show="errors[field.name]"
-            x-text="errors[field.name]"
-          ></div>
-        </div>
-      </template>
-      <button class="form-button" @click="submitForm" :disabled="isSubmitting">
-        <span x-text="isSubmitting ? 'Submitting...' : 'Submit'"></span>
-      </button>
-      <div x-show="submissionError" class="error">
-        Error submitting the form. Please try again.
+<div x-data="regForm">
+  <div class="form-container">
+    <h2>Register</h2>
+    <form @submit.prevent="register">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          :class="errors.email ? 'has-error':''"
+          x-model="email"
+          @blur="validate"
+        />
+        <div class="error" x-show="errors.email" x-text="errors.email"></div>
       </div>
-    </div>
-  </template>
-  <template x-if="submitted">
-    <p>Thank you for subscribing!</p>
-  </template>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          :class="errors.password ? 'has-error':''"
+          x-model="password"
+          @blur="validate"
+        />
+        <div
+          class="error"
+          x-show="errors.password"
+          x-text="errors.password"
+        ></div>
+      </div>
+      <button class="form-button" type="submit" :disabled="loading">
+        <span x-text="loading ? 'Submitting...' : 'Submit'"></span>
+      </button>
+    </form>
+  </div>
 </div>
 {{end}}
