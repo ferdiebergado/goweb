@@ -159,17 +159,13 @@ gen:
 
 ## tidy: Add missing/Remove unused modules
 tidy:
-	go mod tidy
+	@go mod tidy
 
 assets-bundle:
-	@npx esbuild ./web/app/css/style.css --bundle --outfile=./web/assets/css/style.css --minify
-	@npx tsc -noemit && npx esbuild ./web/app/ts/app.ts --bundle --outfile=./web/assets/js/app.js --minify
+	@npx tsc && node build.mjs
 
-assets-css-watch:
-	@npx esbuild ./web/app/css/style.css --bundle --outfile=./web/assets/css/style.css --watch
-
-assets-ts-watch:
-	@npx esbuild ./web/app/ts/app.ts --bundle --outfile=./web/assets/js/app.js --sourcemap --watch
+assets-watch:
+	@node build.dev.mjs
 
 vulncheck:
 	@echo "Running govulncheck..."
