@@ -29,6 +29,21 @@
           x-text="errors.password"
         ></div>
       </div>
+      <div class="form-group">
+        <label for="passwordConfirm">Confirm Password</label>
+        <input
+          type="password"
+          id="passwordConfirm"
+          :class="errors.passwordConfirm ? 'has-error':''"
+          x-model="passwordConfirm"
+          @blur="validate"
+        />
+        <div
+          class="error"
+          x-show="errors.passwordConfirm"
+          x-text="errors.passwordConfirm"
+        ></div>
+      </div>
       <button class="form-button" type="submit" :disabled="loading">
         <span x-text="loading ? 'Submitting...' : 'Submit'"></span>
       </button>

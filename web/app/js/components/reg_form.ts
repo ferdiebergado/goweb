@@ -1,9 +1,10 @@
 interface LoginData {
   email: string;
   password: string;
+  passwordConfirm: string;
   loading: boolean;
   message: string;
-  errors: { email?: string; password?: string };
+  errors: { email?: string; password?: string; passwordConfirm?: string };
   validate(): boolean;
   register(): Promise<void>;
 }
@@ -11,6 +12,7 @@ interface LoginData {
 export default (): LoginData => ({
   email: '',
   password: '',
+  passwordConfirm: '',
   loading: false,
   message: '',
   errors: {},
@@ -26,8 +28,10 @@ export default (): LoginData => ({
 
     if (!this.password) {
       this.errors.password = 'Password is required.';
-    } else if (this.password.length < 6) {
-      this.errors.password = 'Password must be at least 6 characters.';
+    }
+
+    if (!this.passwordConfirm) {
+      this.errors.passwordConfirm = 'Password confirmation is required.';
     }
 
     return Object.keys(this.errors).length === 0;
@@ -43,7 +47,11 @@ export default (): LoginData => ({
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: this.email, password: this.password }),
+        body: JSON.stringify({
+          email: this.email,
+          password: this.password,
+          password_confirm: this.passwordConfirm,
+        }),
       });
 
       if (!response.ok) {
