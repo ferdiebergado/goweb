@@ -1,3 +1,3 @@
-import form from './form';
+import regForm from './reg_form';
 
-export { form };
+export { regForm };

@@ -1,8 +1,8 @@
 import Alpine from 'alpinejs';
-import { form } from './components';
+import { regForm } from './components';
 
 document.addEventListener('alpine:init', () => {
-  Alpine.data('form', form);
+  Alpine.data('regForm', regForm);
 });
 
 Alpine.start();
