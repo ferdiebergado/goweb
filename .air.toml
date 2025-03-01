@@ -16,6 +16,7 @@ exclude_dir = [
 	"web/app",
 	"configs",
 	"tools",
+	"node_modules",
 ]
 exclude_file = []
 exclude_regex = ["_test.go"]
