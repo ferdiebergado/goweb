@@ -1,82 +1,52 @@
-interface FormField {
-  name: string;
-  label: string;
-  type: 'text' | 'email' | 'textarea';
-  required: boolean;
-}
+import { APIResponse } from '../types';
 
-interface FormOptions {
-  fields: FormField[];
-  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  submitUrl: string;
-}
+type ValidateFn = () => FormErrors;
+type HandleFn = <T>(data: T) => undefined;
+type OnErrorFn = (error: unknown) => undefined;
+type FinallyFn = () => undefined;
+type Method = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface FormData {
   [key: string]: string;
 }
 
-interface FormErrors {
+export interface FormErrors {
   [key: string]: string;
 }
 
-export default (options: FormOptions) => ({
-  fields: options.fields || [],
-  method: options.method || 'POST',
+export interface FormOptions {
+  data: FormData;
+  method?: Method;
+  submitUrl: string;
+  validate: ValidateFn;
+  handle: HandleFn;
+  onError: OnErrorFn;
+  onFinal: FinallyFn;
+}
+
+export const form = (options: FormOptions) => ({
+  data: options.data || [],
+  method: options.method ?? 'POST',
   submitUrl: options.submitUrl || '',
-  formData: {} as FormData,
+  validate: options.validate,
+  handle: options.handle,
+  errorFn: options.onError,
+  finalFn: options.onFinal,
   errors: {} as FormErrors,
   isSubmitting: false,
   submitted: false,
   submissionError: false,
 
-  init() {
-    // Initialize formData with empty strings for each field
-    this.fields.forEach((field) => {
-      this.formData[field.name] = '';
-    });
-  },
-
-  validateField(fieldName: string): void {
-    const field = this.fields.find((f) => f.name === fieldName);
-    if (!field) return; // Field not found
-
-    if (field.required && !this.formData[fieldName]) {
-      this.errors[fieldName] = `${field.label} is required.`;
-      return;
-    }
-
-    if (
-      field.type === 'email' &&
-      this.formData[fieldName] &&
-      !this.isValidEmail(this.formData[fieldName])
-    ) {
-      this.errors[fieldName] = 'Invalid email format.';
-    }
-    // Add more validation rules as needed (e.g., regex, length checks)
-
-    // If we reach here, the field is valid, so remove any existing error:
-    delete this.errors[fieldName];
-  },
-
-  isValidEmail(email: string): boolean {
-    // Basic email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  },
-
   validateForm(): boolean {
-    this.errors = {}; // Clear all errors
-    this.fields.forEach((field) => {
-      this.validateField(field.name);
-    });
-    return Object.keys(this.errors).length === 0; // Return true if no errors
+    this.errors = this.validate();
+    return Object.keys(this.errors).length === 0;
   },
 
-  async submitForm(): Promise<void> {
+  async submitForm(): Promise<undefined> {
     if (!this.validateForm()) {
-      console.log('invalid', this.errors);
+      console.log('invalid input', this.errors);
 
-      return; // Don't submit if there are validation errors
+      return;
     }
 
     this.isSubmitting = true;
@@ -88,24 +58,33 @@ export default (options: FormOptions) => ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(this.formData),
+        body: JSON.stringify(this.data),
       });
 
       if (!res.ok) {
+        if (res.status in [400, 422]) {
+          const data: APIResponse<undefined> = await res.json();
+          this.errors = data.errors;
+          return;
+        }
         throw new Error('Network response was not ok');
       }
 
       const data = await res.json();
 
       console.log('Success:', data);
+      if (this.handle) this.handle(data);
+
       this.submitted = true;
     } catch (error) {
       console.error(error);
+      if (this.errorFn) this.errorFn(error);
       this.submissionError = true;
     } finally {
+      if (this.finalFn) this.finalFn();
       this.isSubmitting = false;
     }
 
-    console.log('Form Data:', this.formData);
+    console.log('Form Data:', this.data);
   },
 });
