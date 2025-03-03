@@ -1,70 +1,56 @@
-interface LoginData {
+import { FormErrors, FormValues } from '../@types/form';
+import { isValidEmail } from '../utils';
+import form from './form';
+
+interface RegData extends FormValues {
   email: string;
   password: string;
-  passwordConfirm: string;
-  loading: boolean;
-  message: string;
-  errors: { email?: string; password?: string; passwordConfirm?: string };
-  validate(): boolean;
-  register(): Promise<void>;
+  password_confirm: string;
 }
 
-export default (): LoginData => ({
-  email: '',
-  password: '',
-  passwordConfirm: '',
-  loading: false,
-  message: '',
-  errors: {},
+interface RegErrors extends FormErrors {
+  email?: string;
+  password?: string;
+  passwordConfirm?: string;
+}
 
-  validate() {
-    this.errors = {};
+export default function () {
+  return form<RegData, RegErrors>({
+    data: {
+      email: '',
+      password: '',
+      password_confirm: '',
+    },
+    submitUrl: '/api/auth/register',
+    errors: {},
+    validateFn() {
+      const { email, password, password_confirm } = this.data;
+      const errors: RegErrors = {};
 
-    if (!this.email) {
-      this.errors.email = 'Email is required.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) {
-      this.errors.email = 'Invalid email format.';
-    }
-
-    if (!this.password) {
-      this.errors.password = 'Password is required.';
-    }
-
-    if (!this.passwordConfirm) {
-      this.errors.passwordConfirm = 'Password confirmation is required.';
-    }
-
-    return Object.keys(this.errors).length === 0;
-  },
-
-  async register() {
-    if (!this.validate()) return;
-
-    this.loading = true;
-    this.message = '';
-
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: this.email,
-          password: this.password,
-          password_confirm: this.passwordConfirm,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
+      if (!email) {
+        errors.email = 'Email is required.';
+      } else if (!isValidEmail(email)) {
+        errors.email = 'Invalid email format.';
       }
 
-      this.message = 'Login successful!';
-      // Redirect or handle success
-    } catch (error) {
-      this.message =
-        error instanceof Error ? error.message : 'An error occurred';
-    } finally {
-      this.loading = false;
-    }
-  },
-});
+      if (!password) {
+        errors.password = 'Password is required.';
+      }
+
+      if (!password_confirm) {
+        errors.passwordConfirm = 'Password confirmation is required.';
+      } else if (password && password_confirm !== password) {
+        errors.passwordConfirm = 'Password confirmation should match password.';
+      }
+
+      return errors;
+    },
+    onSuccess(res) {
+      const { message, data } = res;
+      console.log(message, data);
+    },
+    onError(error) {
+      console.error(error);
+    },
+  });
+}
