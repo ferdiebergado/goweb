@@ -1,6 +1,7 @@
 import { FormErrors } from '../@types/form';
 import { isValidEmail } from '../utils';
 import form from './form';
+import urls from '../endpoints';
 
 type FormValues = {
   email: string;
@@ -11,7 +12,7 @@ type FormValues = {
 export default function () {
   return form({
     data: {} as FormValues,
-    submitUrl: '/api/auth/register',
+    submitUrl: urls.register,
     errors: {} as FormErrors<FormValues>,
     validateFn() {
       const { email, password, password_confirm } = this.data;
