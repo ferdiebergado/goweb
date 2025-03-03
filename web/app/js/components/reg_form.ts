@@ -40,7 +40,7 @@ export default function () {
       if (!password_confirm) {
         errors.passwordConfirm = 'Password confirmation is required.';
       } else if (password && password_confirm !== password) {
-        errors.passwordConfirm = 'Password confirmation should match password.';
+        errors.passwordConfirm = 'Passwords should match.';
       }
 
       return errors;
