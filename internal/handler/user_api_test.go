@@ -34,7 +34,7 @@ func TestMain(t *testing.M) {
 	t.Run()
 }
 
-func TestUserHandler_HandleUserRegister_Success(t *testing.T) {
+func TestUserHandlerHandleUserRegisterSuccess(t *testing.T) {
 	const msg = "User registered."
 
 	ctrl := gomock.NewController(t)
@@ -89,7 +89,7 @@ func TestUserHandler_HandleUserRegister_Success(t *testing.T) {
 	assert.NotZero(t, apiRes.Data.UpdatedAt)
 }
 
-func TestUserHandler_HandleUserRegister_InvalidInput(t *testing.T) {
+func TestUserHandlerHandleUserRegisterInvalidInput(t *testing.T) {
 	const msg = "Invalid input."
 
 	ctrl := gomock.NewController(t)
@@ -135,7 +135,7 @@ func TestUserHandler_HandleUserRegister_InvalidInput(t *testing.T) {
 	}
 }
 
-func TestUserHandler_HandleUserRegister_DuplicateUser(t *testing.T) {
+func TestUserHandlerHandleUserRegisterDuplicateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockService := mock.NewMockUserService(ctrl)
 	regRequest := handler.RegisterUserRequest{

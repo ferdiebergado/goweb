@@ -14,7 +14,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestHandler_HandleHealth(t *testing.T) {
+func TestHandlerHandleHealth(t *testing.T) {
 	const (
 		url = "/api/health"
 		msg = "healthy"
