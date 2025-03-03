@@ -1,3 +1,4 @@
+import { FormErrors } from '../@types/form';
 import { isValidEmail } from '../utils';
 import form from './form';
 
@@ -7,20 +8,14 @@ type FormValues = {
   passwordConfirm: string;
 };
 
-type FormErrors = {
-  email?: string;
-  password?: string;
-  passwordConfirm?: string;
-};
-
 export default function () {
   return form({
     data: {} as FormValues,
     submitUrl: '/api/auth/register',
-    errors: {} as FormErrors,
+    errors: {} as FormErrors<FormValues>,
     validateFn() {
       const { email, password, password_confirm } = this.data;
-      const errors: FormErrors = {};
+      const errors: FormErrors<FormValues> = {};
 
       if (!email) {
         errors.email = 'Email is required.';
