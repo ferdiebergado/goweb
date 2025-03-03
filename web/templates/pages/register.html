@@ -41,9 +41,7 @@
           x-text="errors.passwordConfirm"
         ></div>
       </div>
-      <button class="form-button" type="submit" :disabled="isSubmitting">
-        <span x-text="isSubmitting ? 'Submitting...' : 'Submit'"></span>
-      </button>
+      {{template "submit"}}
     </form>
   </div>
 </div>
