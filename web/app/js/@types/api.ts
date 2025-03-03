@@ -1,5 +1,7 @@
+import { FormErrors } from './form';
+
 export interface APIResponse<T> {
   message: string;
-  errors: { [key: string]: string };
+  errors: FormErrors;
   data: T;
 }
