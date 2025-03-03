@@ -11,11 +11,11 @@ export default function (opts: FormOptions) {
     submitUrl,
     isSubmitting: false,
     errors,
-    validate() {
+    validate(): boolean {
       this.errors = validateFn.call(this);
       return Object.keys(this.errors).length === 0;
     },
-    async submit() {
+    async submit(): Promise<undefined> {
       if (!this.validate()) return;
 
       this.isSubmitting = true;
@@ -32,7 +32,7 @@ export default function (opts: FormOptions) {
           if (status === 400 || status === 422) {
             const data: APIResponse<undefined> = await response.json();
             const { message, errors } = data;
-            this.errors = errors;
+            if (errors) this.errors = errors;
             throw new Error(message);
           }
           throw new Error('Invalid credentials');
