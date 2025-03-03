@@ -1,9 +1,7 @@
 import { APIResponse } from '../@types/api';
-import { FormErrors, FormOptions, FormValues } from '../@types/form';
+import { FormOptions } from '../@types/form';
 
-export default function <T extends FormValues, E extends FormErrors>(
-  opts: FormOptions<T, E>
-) {
+export default function (opts: FormOptions) {
   const { data, method, submitUrl, errors, validateFn, onSuccess, onError } =
     opts;
 
@@ -14,7 +12,7 @@ export default function <T extends FormValues, E extends FormErrors>(
     isSubmitting: false,
     errors,
     validate() {
-      this.errors = validateFn.call(this) as E;
+      this.errors = validateFn.call(this);
       return Object.keys(this.errors).length === 0;
     },
     async submit() {
@@ -30,12 +28,12 @@ export default function <T extends FormValues, E extends FormErrors>(
         });
 
         if (!response.ok) {
-          if (response.status in [400, 422]) {
+          const { status } = response;
+          if (status === 400 || status === 422) {
             const data: APIResponse<undefined> = await response.json();
             const { message, errors } = data;
-            console.error(message);
-            this.errors = errors as E;
-            return;
+            this.errors = errors;
+            throw new Error(message);
           }
           throw new Error('Invalid credentials');
         }

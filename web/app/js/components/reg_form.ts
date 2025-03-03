@@ -1,35 +1,30 @@
-import { FormErrors, FormValues } from '../@types/form';
 import { isValidEmail } from '../utils';
 import form from './form';
 
-interface RegData extends FormValues {
+type FormValues = {
   email: string;
   password: string;
-  password_confirm: string;
-}
+  passwordConfirm: string;
+};
 
-interface RegErrors extends FormErrors {
+type FormErrors = {
   email?: string;
   password?: string;
   passwordConfirm?: string;
-}
+};
 
 export default function () {
-  return form<RegData, RegErrors>({
-    data: {
-      email: '',
-      password: '',
-      password_confirm: '',
-    },
+  return form({
+    data: {} as FormValues,
     submitUrl: '/api/auth/register',
-    errors: {},
+    errors: {} as FormErrors,
     validateFn() {
       const { email, password, password_confirm } = this.data;
-      const errors: RegErrors = {};
+      const errors: FormErrors = {};
 
       if (!email) {
         errors.email = 'Email is required.';
-      } else if (!isValidEmail(email)) {
+      } else if (!isValidEmail(email as string)) {
         errors.email = 'Invalid email format.';
       }
 
@@ -49,8 +44,8 @@ export default function () {
       const { message, data } = res;
       console.log(message, data);
     },
-    onError(error) {
-      console.error(error);
+    onError() {
+      return;
     },
   });
 }
