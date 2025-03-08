@@ -32,13 +32,13 @@
         <input
           type="password"
           id="passwordConfirm"
-          :class="errors.passwordConfirm ? 'has-error':''"
+          :class="errors.password_confirm ? 'has-error':''"
           x-model="data.password_confirm"
         />
         <div
           class="error"
-          x-show="errors.passwordConfirm"
-          x-text="errors.passwordConfirm"
+          x-show="errors.password_confirm"
+          x-text="errors.password_confirm"
         ></div>
       </div>
       {{template "submit"}}

@@ -1,11 +1,14 @@
 import { APIResponse } from './api';
 
-type FormValues = Record<string, string | number | boolean>;
-type FormErrors<T extends FormValues> = {
+type FormValues = {
+  [key: string]: string | number | boolean;
+};
+
+type FormErrors<T> = {
   [K in keyof T]?: string;
 };
 
-interface FormOptions {
+type FormOptions = {
   data: FormValues;
   method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   submitUrl: string;
@@ -13,6 +16,6 @@ interface FormOptions {
   validateFn(): FormErrors<FormValues>;
   onSuccess<K>(data: APIResponse<K>): undefined;
   onError(error: unknown): undefined;
-}
+};
 
 export { FormOptions, FormValues, FormErrors };

@@ -3,38 +3,56 @@ import { isValidEmail } from '../utils';
 import form from './form';
 import urls from '../endpoints';
 
-type FormValues = {
+type Values = {
   email: string;
   password: string;
-  passwordConfirm: string;
+  password_confirm: string;
 };
 
+type Errors = FormErrors<Values>;
+
+function validateFormValues(data: Values): Errors {
+  const { email, password, password_confirm } = data;
+  const formErrors: Errors = {};
+
+  if (!email) {
+    formErrors.email = 'Email is required.';
+  } else if (!isValidEmail(email)) {
+    formErrors.email = 'Invalid email format.';
+  }
+
+  if (!password) {
+    formErrors.password = 'Password is required.';
+  }
+
+  if (!password_confirm) {
+    formErrors.password_confirm = 'Password confirmation is required.';
+  } else if (password && password_confirm !== password) {
+    formErrors.password_confirm = 'Passwords should match.';
+  }
+
+  return formErrors;
+}
+
 export default function () {
+  const data: Values = {
+    email: '',
+    password: '',
+    password_confirm: '',
+  };
+
+  const errors: Errors = {
+    email: '',
+    password: '',
+    password_confirm: '',
+  };
+
   return form({
-    data: {} as FormValues,
+    data,
     submitUrl: urls.register,
-    errors: {} as FormErrors<FormValues>,
+    errors,
     validateFn() {
-      const { email, password, password_confirm } = this.data;
-      const errors: FormErrors<FormValues> = {};
-
-      if (!email) {
-        errors.email = 'Email is required.';
-      } else if (!isValidEmail(email as string)) {
-        errors.email = 'Invalid email format.';
-      }
-
-      if (!password) {
-        errors.password = 'Password is required.';
-      }
-
-      if (!password_confirm) {
-        errors.passwordConfirm = 'Password confirmation is required.';
-      } else if (password && password_confirm !== password) {
-        errors.passwordConfirm = 'Passwords should match.';
-      }
-
-      return errors;
+      return validateFormValues(this.data as Values);
     },
     onSuccess(res) {
       const { message, data } = res;
