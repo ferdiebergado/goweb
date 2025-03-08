@@ -11,11 +11,19 @@ export default function (opts: FormOptions) {
     submitUrl,
     isSubmitting: false,
     errors,
+    message: '',
+    isValid: true,
     validate(): boolean {
       this.errors = validateFn.call(this);
-      return Object.keys(this.errors).length === 0;
+      const isValid = Object.values(this.errors).every((value) => value === '');
+      if (!isValid) {
+        this.message = 'Invalid input.';
+        this.isValid = false;
+      }
+      return isValid;
     },
     async submit(): Promise<void> {
+      this.isValid = true;
       if (!this.validate()) return;
 
       this.isSubmitting = true;
@@ -30,7 +38,7 @@ export default function (opts: FormOptions) {
         if (!response.ok) {
           const { status } = response;
           if (status === 400 || status === 422) {
-            const data: APIResponse<undefined> = await response.json();
+            const data: APIResponse = await response.json();
             const { message, errors } = data;
             if (errors) this.errors = errors;
             throw new Error(message);
@@ -38,13 +46,19 @@ export default function (opts: FormOptions) {
           throw new Error('Invalid credentials');
         }
 
-        const data = await response.json();
+        const data: APIResponse = await response.json();
+
+        this.message = data.message;
+
         onSuccess(data);
       } catch (error) {
         console.error(error);
+        this.isValid = false;
+        if (error instanceof Error) this.message = error.message;
         onError(error);
       } finally {
         this.isSubmitting = false;
+        console.log('haserrors', this.isValid);
       }
     },
   };

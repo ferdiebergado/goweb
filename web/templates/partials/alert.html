@@ -1,0 +1,8 @@
+{{define "alert"}}
+<template x-if="message">
+  <div class="alert" :class="isValid ? 'alert-success':'alert-error'">
+    <p x-text="isValid ? 'Success!':'Error:'"></p>
+    <p x-text="message"></p>
+  </div>
+</template>
+{{end}}

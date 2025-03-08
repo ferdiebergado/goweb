@@ -1,6 +1,7 @@
 {{define "content"}}
 <div x-data="regForm">
   <div class="form-container">
+    {{template "alert"}}
     <h2 id="registerForm">Register</h2>
     <form @submit.prevent="submit" aria-labelledby="registerForm">
       <div class="form-group">

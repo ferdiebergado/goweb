@@ -1,5 +1,5 @@
-export interface APIResponse<T> {
+export interface APIResponse {
   message: string;
   errors: Record<string, string | undefined>;
-  data: T;
+  data: Record<string, unknown>;
 }
