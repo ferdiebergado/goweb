@@ -15,7 +15,7 @@ export default function (opts: FormOptions) {
       this.errors = validateFn.call(this);
       return Object.keys(this.errors).length === 0;
     },
-    async submit(): Promise<undefined> {
+    async submit(): Promise<void> {
       if (!this.validate()) return;
 
       this.isSubmitting = true;
