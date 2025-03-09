@@ -91,7 +91,7 @@ func (h *UserAPIHandler) HandleUserRegister(w http.ResponseWriter, r *http.Reque
 	}
 
 	res := APIResponse[*RegisterUserResponse]{
-		Message: "User registered.",
+		Message: "Thank you for registering. Please check your email for the verification link.",
 		Data: &RegisterUserResponse{
 			ID:        user.ID,
 			Email:     user.Email,
