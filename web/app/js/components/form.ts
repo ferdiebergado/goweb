@@ -51,6 +51,7 @@ export default function (opts: FormOptions) {
         this.message = data.message;
 
         onSuccess(data);
+        this.data = {};
       } catch (error) {
         console.error(error);
         this.isValid = false;
