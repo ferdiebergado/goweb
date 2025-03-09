@@ -14,6 +14,6 @@ export type FormOptions = {
   submitUrl: string;
   errors: FormErrors<FormValues>;
   validateFn(): FormErrors<FormValues>;
-  onSuccess(data: APIResponse): undefined;
-  onError(error: unknown): undefined;
+  onSuccess(data: APIResponse): void;
+  onError(error: unknown): void;
 };
