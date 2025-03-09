@@ -1,13 +1,12 @@
 .form-container {
 	display: flex;
 	flex-direction: column;
-	gap: 15px;
-	padding: 20px 40px;
+	gap: 1rem;
 	background: #ffffff;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	border-radius: 8px;
-	max-width: 400px;
-	margin: 5rem auto;
+	padding: clamp(0.9375rem, 2vw, 1.25rem) clamp(1.25rem, 3vw, 1.875rem);
+	width: min(100%, 25rem);
 }
 
 .form-group {
@@ -57,14 +56,6 @@
 	transform: translateY(-2px);
 }
 
-@media (max-width: 768px) {
-	.form-container {
-		padding: 15px 20px;
-		width: 100%;
-		max-width: 100%;
-	}
-}
-
 .error {
 	color: red;
 	font-size: 0.8em;
@@ -74,4 +65,12 @@
 .form-group textarea.has-error,
 .form-group select.has-error {
 	border: 1px solid red;
+}
+
+@media (max-width: 768px) {
+	.form-container {
+		padding: 15px 20px;
+		width: 100%;
+		max-width: 100%;
+	}
 }
