@@ -1,5 +1,5 @@
-import { APIResponse } from '../@types/api';
-import { FormOptions } from '../@types/form';
+import type { APIResponse } from '../@types/api';
+import type { FormOptions } from '../@types/form';
 
 export default function (opts: FormOptions) {
   const { data, method, submitUrl, errors, validateFn, onSuccess, onError } =

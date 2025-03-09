@@ -1,21 +1,19 @@
-import { APIResponse } from './api';
+import type { APIResponse } from './api';
 
-type FormValues = {
+export type FormValues = {
   [key: string]: string | number | boolean;
 };
 
-type FormErrors<T> = {
+export type FormErrors<T> = {
   [K in keyof T]?: string;
 };
 
-type FormOptions = {
+export type FormOptions = {
   data: FormValues;
   method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   submitUrl: string;
   errors: FormErrors<FormValues>;
   validateFn(): FormErrors<FormValues>;
-  onSuccess<K>(data: APIResponse<K>): undefined;
+  onSuccess(data: APIResponse): undefined;
   onError(error: unknown): undefined;
 };
-
-export { FormOptions, FormValues, FormErrors };

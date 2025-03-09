@@ -1,4 +1,4 @@
-import { FormErrors } from '../@types/form';
+import type { FormErrors } from '../@types/form';
 import { isValidEmail } from '../utils';
 import form from './form';
 import urls from '../endpoints';
