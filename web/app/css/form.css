@@ -6,7 +6,7 @@
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	border-radius: 8px;
 	padding: clamp(0.9375rem, 2vw, 1.25rem) clamp(1.25rem, 3vw, 1.875rem);
-	width: min(100%, 25rem);
+	width: clamp(25rem, 25rem, 100%);
 }
 
 .form-group {
