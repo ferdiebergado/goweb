@@ -12,6 +12,7 @@ import (
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/goweb/internal/handler"
 	"github.com/ferdiebergado/goweb/internal/model"
+	"github.com/ferdiebergado/goweb/internal/pkg/lang"
 	"github.com/ferdiebergado/goweb/internal/service"
 	"github.com/ferdiebergado/goweb/internal/service/mock"
 	"github.com/go-playground/validator/v10"
@@ -35,7 +36,7 @@ func TestMain(t *testing.M) {
 }
 
 func TestUserHandlerHandleUserRegisterSuccess(t *testing.T) {
-	const msg = "User registered."
+	msg := lang.En["regSuccess"]
 
 	ctrl := gomock.NewController(t)
 	mockService := mock.NewMockUserService(ctrl)
