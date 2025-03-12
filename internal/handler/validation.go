@@ -8,8 +8,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type validationErrors map[string]string
-
 func validationError(w http.ResponseWriter, r *http.Request, err error) {
 	errs := make(map[string]string, 0)
 

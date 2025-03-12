@@ -13,9 +13,9 @@ import (
 const jsonCT = "application/json"
 
 type APIResponse[T any] struct {
-	Message string           `json:"message"`
-	Errors  validationErrors `json:"errors,omitempty"`
-	Data    T                `json:"data,omitempty"`
+	Message string            `json:"message,omitempty"`
+	Errors  map[string]string `json:"errors,omitempty"`
+	Data    T                 `json:"data,omitempty"`
 }
 
 type APIHandler struct {
