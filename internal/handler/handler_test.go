@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandler_HandleDashboard(t *testing.T) {
+func TestHandlerHandleDashboard(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
 	rr := httptest.NewRecorder()
 
