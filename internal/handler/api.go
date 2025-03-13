@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/ferdiebergado/gopherkit/http/response"
-	"github.com/ferdiebergado/goweb/internal/pkg/lang"
+	"github.com/ferdiebergado/goweb/internal/pkg/message"
 	"github.com/ferdiebergado/goweb/internal/service"
 )
 
@@ -92,7 +92,7 @@ func (h *UserAPIHandler) HandleUserRegister(w http.ResponseWriter, r *http.Reque
 	}
 
 	res := APIResponse[*RegisterUserResponse]{
-		Message: lang.En["regSuccess"],
+		Message: message.Get("regSuccess"),
 		Data: &RegisterUserResponse{
 			ID:        user.ID,
 			Email:     user.Email,
