@@ -17,6 +17,7 @@
   "author": "Ferdinand Saporas Bergado <ferdiebergado@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@eslint/css": "^0.5.0",
     "@eslint/js": "^9.21.0",
     "@types/alpinejs": "^3.13.11",
     "esbuild": "^0.25.0",
