@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"flag"
 	"fmt"
@@ -49,34 +50,71 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	appEnv := env.Get(envVar, envDev)
-	if appEnv != envProd {
-		if err := environment.LoadEnv(appEnv); err != nil {
-			return fmt.Errorf("load env: %w", err)
-		}
+	appEnv, err := setupEnvironment()
+	if err != nil {
+		return err
 	}
 
 	logging.SetLogger(os.Stdout, appEnv)
 
-	cf := flag.String("cfg", cfgFile, "Config file")
-	flag.Parse()
-
-	cfg, err := config.LoadConfig(*cf)
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
-
-	db, err := db.Connect(ctx, &cfg.Db)
+	cfg, err := loadConfiguration()
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 
+	dbConn, err := db.Connect(ctx, &cfg.Db)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	deps, err := setupDependencies(cfg, dbConn)
+	if err != nil {
+		return err
+	}
+
+	app := handler.NewApp(deps)
+	app.SetupRoutes()
+
+	server := createServer(cfg, app.Router())
+
+	serverErr := startServer(server, cfg)
+	select {
+	case <-ctx.Done():
+		slog.Info("Shutdown signal received.")
+	case err := <-serverErr:
+		return fmt.Errorf("server error: %w", err)
+	}
+
+	return shutdownServer(server, cfg)
+}
+
+func setupEnvironment() (string, error) {
+	appEnv := env.Get(envVar, envDev)
+	if appEnv != envProd {
+		if err := environment.LoadEnv(appEnv); err != nil {
+			return "", fmt.Errorf("load env: %w", err)
+		}
+	}
+	return appEnv, nil
+}
+
+func loadConfiguration() (*config.Config, error) {
+	cf := flag.String("cfg", cfgFile, "Config file")
+	flag.Parse()
+	cfg, err := config.LoadConfig(*cf)
+	if err != nil {
+		return nil, fmt.Errorf("load config: %w", err)
+	}
+	return cfg, nil
+}
+
+func setupDependencies(cfg *config.Config, db *sql.DB) (*handler.AppDependencies, error) {
 	router := goexpress.New()
 	validate = validation.New()
 	tmpl, err := handler.NewTemplate(cfg.Template)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	hasher := &security.Argon2Hasher{}
 
@@ -88,19 +126,20 @@ func run(ctx context.Context) error {
 		Template:  tmpl,
 		Hasher:    hasher,
 	}
+	return deps, nil
+}
 
-	app := handler.NewApp(deps)
-	app.SetupRoutes()
-
-	server := &http.Server{
+func createServer(cfg *config.Config, router *goexpress.Router) *http.Server {
+	return &http.Server{
 		Addr:         fmt.Sprintf(fmtAddr, cfg.Server.Port),
-		Handler:      app.Router(),
+		Handler:      router,
 		ReadTimeout:  time.Duration(cfg.Server.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(cfg.Server.WriteTimeout) * time.Second,
 		IdleTimeout:  time.Duration(cfg.Server.IdleTimeout) * time.Second,
 	}
+}
 
-	// Run server in a separate goroutine
+func startServer(server *http.Server, cfg *config.Config) chan error {
 	serverErr := make(chan error, 1)
 	go func() {
 		slog.Info("Server started", "address", server.Addr, "env", cfg.App.Env, slog.Bool("debug", cfg.App.IsDebug))
@@ -109,16 +148,10 @@ func run(ctx context.Context) error {
 		}
 		close(serverErr)
 	}()
+	return serverErr
+}
 
-	// Wait for a shutdown signal or server error
-	select {
-	case <-ctx.Done(): // Received termination signal (CTRL+C)
-		slog.Info("Shutdown signal received.")
-	case err := <-serverErr: // Server crashed
-		return fmt.Errorf("server error: %w", err)
-	}
-
-	// Graceful shutdown with timeout
+func shutdownServer(server *http.Server, cfg *config.Config) error {
 	slog.Info("Shutting down server...")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Server.ShutdownTimeout)*time.Second)
 	defer cancel()
