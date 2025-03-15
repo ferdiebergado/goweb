@@ -2,9 +2,9 @@ package handler
 
 import "context"
 
-type ctxKey string
+type ctxKey int
 
-const paramsCtxKey ctxKey = "params"
+const paramsCtxKey ctxKey = 1
 
 func NewParamsContext[T any](ctx context.Context, t T) context.Context {
 	return context.WithValue(ctx, paramsCtxKey, t)
