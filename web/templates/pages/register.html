@@ -1,21 +1,24 @@
 {{define "content"}}
 <div x-data="regForm">
-  <div class="form-container">
+  <div class="container" style="width: clamp(400px, 400px, 100%)">
     {{template "alert"}}
     <h2 id="registerForm">Register</h2>
     <form @submit.prevent="submit" aria-labelledby="registerForm">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          :class="errors.email ? 'has-error':''"
-          x-model="data.email"
-          aria-describedby="emailError"
-          aria-required="true"
-          autocomplete="email"
-          autofocus
-        />
+        <div class="input-group">
+          <i class="fas fa-envelope"></i>
+          <input
+            type="email"
+            id="email"
+            :class="errors.email ? 'has-error':''"
+            x-model="data.email"
+            placeholder="Email"
+            aria-describedby="emailError"
+            aria-required="true"
+            autocomplete="email"
+            autofocus
+          />
+        </div>
         <div
           id="emailError"
           class="error"
@@ -24,15 +27,18 @@
         ></div>
       </div>
       <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          :class="errors.password ? 'has-error':''"
-          x-model="data.password"
-          aria-describedby="passwordError"
-          aria-required="true"
-        />
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input
+            type="password"
+            id="password"
+            :class="errors.password ? 'has-error':''"
+            x-model="data.password"
+            placeholder="Password"
+            aria-describedby="passwordError"
+            aria-required="true"
+          />
+        </div>
         <div
           id="passwordError"
           class="error"
@@ -41,15 +47,18 @@
         ></div>
       </div>
       <div class="form-group">
-        <label for="passwordConfirm">Confirm Password</label>
-        <input
-          type="password"
-          id="passwordConfirm"
-          :class="errors.password_confirm ? 'has-error':''"
-          x-model="data.password_confirm"
-          aria-describedby="passwordConfirmError"
-          aria-required="true"
-        />
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input
+            type="password"
+            id="passwordConfirm"
+            :class="errors.password_confirm ? 'has-error':''"
+            x-model="data.password_confirm"
+            placeholder="Retype password"
+            aria-describedby="passwordConfirmError"
+            aria-required="true"
+          />
+        </div>
         <div
           id="passwordConfirmError"
           class="error"

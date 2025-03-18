@@ -1,15 +1,33 @@
-* {
+/* Reset and Box Sizing */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	box-sizing: border-box;
-	font-family: sans-serif;
 }
 
 body {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	height: 100vh;
-	margin: 0;
-	background-color: #f8f9fa;
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Modern sans-serif */
+	line-height: 1.6;
+	color: #333;
+	background-color: #f9f9f9;
+	font-size: 0.9rem;
+}
+
+/* Link Styles */
+a {
+	color: #007bff; /* Primary blue */
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+/* Container for layout */
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 20px;
 }
