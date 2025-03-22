@@ -79,7 +79,7 @@ func TestUserHandlerHandleUserRegisterSuccess(t *testing.T) {
 
 	var apiRes handler.APIResponse[handler.RegisterUserResponse]
 	if err := json.Unmarshal(rr.Body.Bytes(), &apiRes); err != nil {
-		t.Fatal("failed to decode json", err)
+		t.Fatal(message.Get("jsonFailed"), err)
 	}
 
 	assert.Equal(t, msg, apiRes.Message)
@@ -127,7 +127,7 @@ func TestUserHandlerHandleUserRegisterInvalidInput(t *testing.T) {
 
 			var apiRes handler.APIResponse[handler.RegisterUserResponse]
 			if err := json.Unmarshal(rr.Body.Bytes(), &apiRes); err != nil {
-				t.Fatal("failed to decode json", err)
+				t.Fatal(message.Get("jsonFailed"), err)
 			}
 
 			assert.Equal(t, msg, apiRes.Message)
@@ -172,7 +172,7 @@ func TestUserHandlerHandleUserRegisterDuplicateUser(t *testing.T) {
 
 	var apiRes handler.APIResponse[handler.RegisterUserResponse]
 	if err := json.Unmarshal(rr.Body.Bytes(), &apiRes); err != nil {
-		t.Fatal("failed to decode json", err)
+		t.Fatal(message.Get("jsonFailed"), err)
 	}
 
 	assert.Equal(t, service.ErrDuplicateUser.Error(), apiRes.Message)

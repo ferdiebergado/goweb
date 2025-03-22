@@ -9,6 +9,7 @@ import (
 
 	"github.com/ferdiebergado/goexpress"
 	"github.com/ferdiebergado/goweb/internal/handler"
+	"github.com/ferdiebergado/goweb/internal/pkg/message"
 	"github.com/ferdiebergado/goweb/internal/service/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -39,7 +40,7 @@ func TestHandlerHandleHealth(t *testing.T) {
 
 	var apiRes handler.APIResponse[any]
 	if err := json.Unmarshal(rr.Body.Bytes(), &apiRes); err != nil {
-		t.Fatal("failed to decode json", err)
+		t.Fatal(message.Get("jsonFailed"), err)
 	}
 
 	assert.Equal(t, msg, apiRes.Message)
