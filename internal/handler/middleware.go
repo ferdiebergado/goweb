@@ -14,7 +14,7 @@ func DecodeJSON[T any]() goexpress.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			slog.Info("Checking content-type for application/json...")
-			if r.Header.Get("Content-Type") == jsonCT {
+			if r.Header.Get(HeaderContentType) == MimeJSONUTF8 {
 				slog.Info("Decoding json body...")
 				var decoded T
 				decoder := json.NewDecoder(r.Body)

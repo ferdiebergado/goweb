@@ -61,7 +61,7 @@ func (t *Template) Render(w http.ResponseWriter, r *http.Request, name string, d
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set(HeaderContentType, MimeHTMLUTF8)
 	w.WriteHeader(http.StatusOK)
 }
 

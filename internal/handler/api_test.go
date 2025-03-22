@@ -18,7 +18,6 @@ func TestHandlerHandleHealth(t *testing.T) {
 	const (
 		url = "/api/health"
 		msg = "healthy"
-		ct  = "application/json"
 	)
 
 	ctrl := gomock.NewController(t)
@@ -36,7 +35,7 @@ func TestHandlerHandleHealth(t *testing.T) {
 	defer res.Body.Close()
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
-	assert.Equal(t, ct, res.Header["Content-Type"][0])
+	assert.Equal(t, handler.MimeJSONUTF8, res.Header[handler.HeaderContentType][0])
 
 	var apiRes handler.APIResponse[any]
 	if err := json.Unmarshal(rr.Body.Bytes(), &apiRes); err != nil {

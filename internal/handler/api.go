@@ -11,8 +11,6 @@ import (
 	"github.com/ferdiebergado/goweb/internal/service"
 )
 
-const jsonCT = "application/json"
-
 type APIResponse[T any] struct {
 	Message string            `json:"message,omitempty"`
 	Errors  map[string]string `json:"errors,omitempty"`
